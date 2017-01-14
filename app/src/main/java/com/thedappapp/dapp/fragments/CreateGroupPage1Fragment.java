@@ -103,10 +103,6 @@ public class CreateGroupPage1Fragment extends Fragment {
             }
         });
 
-        if (isEditting) {
-            setForEdit();
-            hasTakenPicture = true;
-        }
     }
 
     public Bundle pullInformation() {
