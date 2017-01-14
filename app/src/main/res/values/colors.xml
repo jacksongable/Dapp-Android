@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#F9B158</color>
+    <color name="colorPrimaryDark">#b68141</color>
+    <color name="colorAccent">#69140e</color>
+    <color name="dapp_orange">#F9B158</color>
+    <color name="background">#f0f0f0</color>
+    <color name="gray_text">#6d6d6d</color>
+    <color name="red">#FF0000</color>
+    <color name="white">#FFFFFF</color>
+</resources>
