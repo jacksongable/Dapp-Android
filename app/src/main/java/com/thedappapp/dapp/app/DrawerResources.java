@@ -69,7 +69,7 @@ public class DrawerResources {
 
     private static ProfileDrawerItem profile () {
         return new ProfileDrawerItem().withName(User.me().getUsername());
-        //.withIcon(Dapp.fetchProfileImageIfNecessary()); Deactivated.
+        //.withIcon(Application.fetchProfileImageIfNecessary()); Deactivated.
     }
 
     public static IDrawerItem getCurrentlyLoadedActivityItem () {
@@ -110,7 +110,7 @@ public class DrawerResources {
                     break;
                 case LOG_OUT:
                     Log.d(TAG, "Chat item selected.");
-                    Dapp.logout(sContext);
+                    Application.logout(sContext);
                     return false;
                 default:
                     throw new RuntimeException("Illegal option selected.");

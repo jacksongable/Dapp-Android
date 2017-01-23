@@ -7,26 +7,31 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 
 import com.firebase.geofire.GeoLocation;
 import com.thedappapp.dapp.activities.DappActivity;
+import com.thedappapp.dapp.app.DatabaseOperationCodes;
 import com.thedappapp.dapp.objects.group.Group;
 
 /**
  * Created by jackson on 10/18/16.
  */
-public class Locator extends AsyncTask <Void, Void, Void> {
+public class Locator extends AsyncTask <Group, Void, Void> {
 
-    private DappActivity context;
-    private Group forGroup;
+    private Context context;
+    private Group mGroup;
+    private DatabaseOperationCodes saveOperation;
 
-    public Locator(DappActivity context, Group forGroup) {
+    public Locator(Context context, DatabaseOperationCodes saveOperation) {
         this.context = context;
-        this.forGroup = forGroup;
+        this.saveOperation = saveOperation;
     }
 
     @Override
-    protected Void doInBackground(Void... voids) {
+    protected Void doInBackground(@NonNull Group... groups) {
+        mGroup = groups[0];
+
         LocationManager manager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         LocUpdateListener listener = new LocUpdateListener(manager);
 
@@ -59,7 +64,8 @@ public class Locator extends AsyncTask <Void, Void, Void> {
         public void onLocationChanged(Location location) {
             Looper.myLooper().quit();
             mManager.removeUpdates(this);
-            forGroup.setLocation(new GeoLocation(location.getLatitude(), location.getLongitude()));
+            mGroup.setLocation(new GeoLocation(location.getLatitude(), location.getLongitude()));
+            mGroup.saveToFirebase(saveOperation);
         }
 
         @Override

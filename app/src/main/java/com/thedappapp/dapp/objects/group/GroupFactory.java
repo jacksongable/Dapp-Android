@@ -43,14 +43,7 @@ public class GroupFactory {
     }
 
     public Group build () {
-        Group group = new Group(name, bio, leader, interests);
-
-        if (usingLocation) {
-            Locator locator = new Locator(contextForLocation, group);
-            locator.execute();
-        }
-
-        return group;
+        return new Group(name, bio, leader, interests);
     }
 
 

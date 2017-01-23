@@ -2,15 +2,21 @@ package com.thedappapp.dapp.activities;
 
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 
 import com.thedappapp.dapp.R;
+import com.thedappapp.dapp.app.Application;
 import com.thedappapp.dapp.app.DrawerResources;
 
-
-import com.thedappapp.dapp.interfaces.NoToolbarActivity;
+import com.thedappapp.dapp.events.GroupDataEvent;
+import com.thedappapp.dapp.interfaces.NoToolbar;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
-import com.thedappapp.dapp.interfaces.ToolbarWithoutDrawerActivity;
+import com.thedappapp.dapp.interfaces.ToolbarWithoutDrawer;
+import com.thedappapp.dapp.listeners.GroupDataListener;
+import com.thedappapp.dapp.listeners.UserDataListener;
+
+import org.greenrobot.eventbus.Subscribe;
 
 /**
  * The abstract root activity that all activities in this app should inherit from. This class provides
@@ -26,13 +32,15 @@ public abstract class DappActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if (this instanceof NoToolbarActivity)
+        UserDataListener.getDefault().enable();
+        GroupDataListener.getDefault().enable();
+
+        if (this instanceof NoToolbar)
             return;
         else setToolbar();
-        if (!(this instanceof ToolbarWithoutDrawerActivity))
+        if (!(this instanceof ToolbarWithoutDrawer))
             enableDrawer();
     }
-
 
     protected void setToolbar () {
         Toolbar tb = (Toolbar) findViewById(R.id.toolbar);
@@ -54,7 +62,7 @@ public abstract class DappActivity extends AppCompatActivity {
                     .build();
 
             int activityIdentifier = -1;
-            if (this instanceof MyGroupActivity) activityIdentifier = 1;
+            if (this instanceof MainActivity) activityIdentifier = 1;
             else if (this instanceof InvitationViewerActivity) activityIdentifier = 2;
             else if (this instanceof MapsActivity) activityIdentifier = 3;
             else if (this instanceof FeedActivity) activityIdentifier = 4;
@@ -62,5 +70,18 @@ public abstract class DappActivity extends AppCompatActivity {
 
             if (activityIdentifier != -1) drawer.setSelectionAtPosition(activityIdentifier, false);
         }
+    }
+
+    @Subscribe
+    public void onGroupDataUpdate (GroupDataEvent event) {
+        Log.i(getClass().getSimpleName(), "GroupDataEvent recieved from bus.");
+        Application.getApplication().setCurrentGroup(event.getNewGroup());
+    }
+
+    @Override
+    protected void onStop () {
+        super.onStop();
+        UserDataListener.getDefault().disable();
+        GroupDataListener.getDefault().disable();
     }
 }

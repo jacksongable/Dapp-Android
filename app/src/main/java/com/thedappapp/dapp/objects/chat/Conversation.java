@@ -1,53 +1,80 @@
 package com.thedappapp.dapp.objects.chat;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.support.annotation.NonNull;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.Exclude;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
+import com.thedappapp.dapp.app.Application;
+import com.thedappapp.dapp.app.DatabaseOperationCodes;
+import com.thedappapp.dapp.objects.AbstractFirebaseObject;
+import com.thedappapp.dapp.objects.Metadata;
+import com.thedappapp.dapp.objects.group.Group;
+
+import java.util.List;
+
 /**
  * Created by jackson on 8/20/16.
  */
-public class Conversation {
+public class Conversation extends AbstractFirebaseObject {
 
-    private String user1, user2;
+    private List<Message> messages;
 
     public Conversation() {}
 
-    Conversation(String me, String them) {
-        user1 = me;
-        user2 = them;
+    private Conversation(Parcel in) {
+        super.meta = in.readParcelable(Metadata.class.getClassLoader());
+        in.readList(messages, Message.class.getClassLoader());
     }
 
-    public String getId () {
-        return getObjectId();
-    }
+    @Exclude
+    @Override
+    public void saveToFirebase (@NonNull DatabaseOperationCodes code) {
+        if (code == DatabaseOperationCodes.DO_NOTHING)
+            return;
 
-    public Group getMyGroup () {
-        try {
-            Group g1 = getParseObject("groupOne").fetchIfNeeded();
-            Group g2 = getParseObject("groupTwo").fetchIfNeeded();
+        if (meta == null && code != DatabaseOperationCodes.CREATE)
+            throw new IllegalStateException("You must create the group object in the database before deleting or updating it.");
 
-            if (g1.getLeaderAsString().equals(User.me().getUsername())) return g1;
-            else return g2;
-
-        } catch (ParseException e) {
-            Log.e("Chatroom Object", Log.getStackTraceString(e));
+        else if (code == DatabaseOperationCodes.DELETE) {
+            FirebaseDatabase.getInstance().getReference("groups").child(meta.getUid()).setValue(null);
+            return;
+        } else {
+            DatabaseReference groupReference = FirebaseDatabase.getInstance().getReference("groups");
+            switch (code) {
+                case CREATE:
+                    super.meta = new Metadata(groupReference.getKey(), ServerValue.TIMESTAMP, ServerValue.TIMESTAMP);
+                    groupReference.push().setValue(this);
+                    break;
+                case UPDATE:
+                    super.meta.setUpdated(ServerValue.TIMESTAMP);
+                    groupReference.child(super.meta.getUid()).setValue(this);
+                    break;
+            }
         }
-        return null;
     }
 
-    public Group getOtherGroup () {
-        try {
-            Group g1 = getParseObject("groupOne").fetchIfNeeded();
-            Group g2 = getParseObject("groupTwo").fetchIfNeeded();
+    @Override
+    public int describeContents() {
+        return 0;
+    }
 
-            if (g1.getLeaderAsString().equals(User.me().getUsername())) return g2;
-            else return g1;
+    @Override
+    public void writeToParcel(Parcel out, int flag) {
+        out.writeParcelable(super.meta, 0);
+        out.writeTypedList(messages);
+    }
 
-        } catch (ParseException e) {
-            Log.e("Chatroom Object", Log.getStackTraceString(e));
+    public static final Parcelable.Creator<Conversation> CREATOR = new Parcelable.Creator<Conversation>() {
+        public Conversation createFromParcel(Parcel in) {
+            return new Conversation(in);
         }
-        return null;
-    }
 
-    public static Chatroom from (String id) throws ParseException {
-        ParseQuery<Chatroom> query = ParseQuery.getQuery(Chatroom.class);
-        return query.get(id);
-    }
+        public Conversation[] newArray(int size) {
+            return new Conversation[size];
+        }
+    };
 }

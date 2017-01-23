@@ -1,30 +1,30 @@
 package com.thedappapp.dapp.objects.group;
 
+import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
 
 import com.firebase.geofire.GeoLocation;
-import com.google.firebase.appindexing.Action;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import com.thedappapp.dapp.app.FirebaseSaveKeys;
+import com.thedappapp.dapp.app.DatabaseOperationCodes;
+import com.thedappapp.dapp.async.Locator;
+import com.thedappapp.dapp.objects.AbstractFirebaseObject;
+import com.thedappapp.dapp.objects.Metadata;
 
 /**
  * Created by jackson on 8/20/16.
  */
-public class Group implements Parcelable {
+public class Group extends AbstractFirebaseObject {
 
     private String name, bio, leader;
     private List<String> interests;
-    private Metadata meta;
     private GeoLocation location;
 
     public Group () {}
@@ -83,10 +83,6 @@ public class Group implements Parcelable {
         return interests;
     }
 
-    public Metadata getMeta () {
-        return meta;
-    }
-
     @Exclude
     public boolean hasInterest (String key) {
         return interests.contains(key);
@@ -98,23 +94,37 @@ public class Group implements Parcelable {
     }
 
     @Exclude
-    public void saveToFirebase (FirebaseSaveKeys key) {
-        if (meta == null && key != FirebaseSaveKeys.CREATE)
+    @Override
+    public void saveToFirebase (@NonNull DatabaseOperationCodes code) {
+        if (code == DatabaseOperationCodes.DO_NOTHING)
+            return;
+
+        if (meta == null && code != DatabaseOperationCodes.CREATE)
             throw new IllegalStateException("You must create the group object in the database before deleting or updating it.");
-        else if (key == FirebaseSaveKeys.DELETE) {
+
+        else if (code == DatabaseOperationCodes.DELETE) {
             FirebaseDatabase.getInstance().getReference("groups").child(meta.getUid()).setValue(null);
             return;
         } else {
             DatabaseReference groupReference = FirebaseDatabase.getInstance().getReference("groups").push();
-            switch (key) {
+            switch (code) {
                 case CREATE:
-                    meta = new Metadata(groupReference.getKey(), ServerValue.TIMESTAMP, ServerValue.TIMESTAMP);
+                    super.meta = new Metadata(groupReference.getKey(), ServerValue.TIMESTAMP, ServerValue.TIMESTAMP);
                     break;
                 case UPDATE:
                     meta.setUpdated(ServerValue.TIMESTAMP);
                     break;
             }
             groupReference.setValue(this);
+        }
+    }
+
+    public void fetchLocationAndSaveToFirebase (Context context, DatabaseOperationCodes code) {
+        if (code == DatabaseOperationCodes.DELETE)
+            saveToFirebase(code);
+        else {
+            Locator locator = new Locator(context, code);
+            locator.execute(this);
         }
     }
 

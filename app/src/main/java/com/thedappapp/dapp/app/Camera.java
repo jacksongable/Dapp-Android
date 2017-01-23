@@ -78,7 +78,7 @@ public class Camera {
 
     public static File getApplicationPhotoDirectory() {
         File externalDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        return new File (externalDirectory, "Dapp");
+        return new File (externalDirectory, "Application");
     }
 }
 

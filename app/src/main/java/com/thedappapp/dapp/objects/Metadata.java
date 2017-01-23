@@ -1,11 +1,9 @@
-package com.thedappapp.dapp.objects.group;
+package com.thedappapp.dapp.objects;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.firebase.database.Exclude;
-import com.google.firebase.database.ServerValue;
-import com.thedappapp.dapp.objects.chat.Message;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,17 +12,19 @@ import java.util.Map;
  * Created by jackson on 1/11/17.
  */
 
-class Metadata implements Parcelable {
+public class Metadata implements Parcelable {
 
     private String uid;
     private Object created, updated;
+    private Map<String, Object> miscData;
 
     public Metadata () {}
 
-    Metadata (String uid, Object created, Object updated) {
+    public Metadata (String uid, Object created, Object updated) {
         this.uid = uid;
         this.created = created;
         this.updated = updated;
+        miscData = new HashMap<>();
     }
 
     public Object getCreated () {
@@ -49,17 +49,30 @@ class Metadata implements Parcelable {
         return uid;
     }
 
-    void setUid (String uid) {
+    public void setUid (String uid) {
         this.uid = uid;
     }
 
-    void setCreated (Object created) {
+    public void setCreated (Object created) {
         this.created = created;
     }
 
-    void setUpdated (Object updated) {
+    public void setUpdated (Object updated) {
         this.updated = updated;
     }
+
+    public void addMiscellaneousData (String key, Object value) {
+        miscData.put(key, value);
+    }
+
+    public Object getMiscellaneousAttribute (String key) {
+        return miscData.get(key);
+    }
+
+    public Map<String, Object> getAllMiscellaneousData () {
+        return miscData;
+    }
+
 
     @Override
     public int describeContents() {
