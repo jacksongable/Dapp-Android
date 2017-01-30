@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include layout="@layout/content_toolbar" android:id="@+id/toolbar" />
+
+    <include layout="@layout/content_empty_list_message"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_below="@id/toolbar" android:id="@+id/no_content_message"
+        android:layout_centerHorizontal="true" android:visibility="gone" />
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/chat_selector_list"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/no_content_message" />
+
+</RelativeLayout>

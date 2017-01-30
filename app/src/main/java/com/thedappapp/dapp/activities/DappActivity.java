@@ -5,7 +5,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
 import com.thedappapp.dapp.R;
-import com.thedappapp.dapp.app.Application;
+import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.app.DrawerResources;
 
 import com.thedappapp.dapp.events.GroupDataEvent;
@@ -34,7 +34,6 @@ public abstract class DappActivity extends AppCompatActivity {
         super.onStart();
         UserDataListener.getDefault().enable();
         GroupDataListener.getDefault().enable();
-
         if (this instanceof NoToolbar)
             return;
         else setToolbar();
@@ -63,7 +62,7 @@ public abstract class DappActivity extends AppCompatActivity {
 
             int activityIdentifier = -1;
             if (this instanceof MainActivity) activityIdentifier = 1;
-            else if (this instanceof InvitationViewerActivity) activityIdentifier = 2;
+            else if (this instanceof RequestsActivity) activityIdentifier = 2;
             else if (this instanceof MapsActivity) activityIdentifier = 3;
             else if (this instanceof FeedActivity) activityIdentifier = 4;
             else if (this instanceof ChatSelectorActivity || this instanceof ChatThreadActivity) activityIdentifier = 5;
@@ -75,7 +74,7 @@ public abstract class DappActivity extends AppCompatActivity {
     @Subscribe
     public void onGroupDataUpdate (GroupDataEvent event) {
         Log.i(getClass().getSimpleName(), "GroupDataEvent recieved from bus.");
-        Application.getApplication().setCurrentGroup(event.getNewGroup());
+        App.getApp().setCurrentGroup(event.getNewGroup());
     }
 
     @Override

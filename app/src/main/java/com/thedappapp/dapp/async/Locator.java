@@ -10,7 +10,6 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 
 import com.firebase.geofire.GeoLocation;
-import com.thedappapp.dapp.activities.DappActivity;
 import com.thedappapp.dapp.app.DatabaseOperationCodes;
 import com.thedappapp.dapp.objects.group.Group;
 
@@ -65,7 +64,7 @@ public class Locator extends AsyncTask <Group, Void, Void> {
             Looper.myLooper().quit();
             mManager.removeUpdates(this);
             mGroup.setLocation(new GeoLocation(location.getLatitude(), location.getLongitude()));
-            mGroup.saveToFirebase(saveOperation);
+            mGroup.save(saveOperation);
         }
 
         @Override

@@ -2,9 +2,8 @@ package com.thedappapp.dapp.activities;
 
 import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
-
-import com.google.firebase.auth.FirebaseAuth;
 import com.thedappapp.dapp.R;
+import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.app.Camera;
 import com.thedappapp.dapp.app.DatabaseOperationCodes;
 import com.thedappapp.dapp.fragments.CreateGroupPage1Fragment;
@@ -65,9 +64,10 @@ public class CreateGroupActivity extends DappActivity
     }
 
     @Override
-    public void onPage1Interaction(CreateGroupPage1Fragment.Page1FragmentInteractionListener.RequestCode code) {
+    public void onPage1Interaction(CreateGroupPage1Fragment.RequestCode code) {
         switch (code) {
             case DISPATCH_CAMERA:
+                page1.onPictureTaken();
                 camera.dispatch(this);
                 break;
             case DONE:
@@ -79,7 +79,7 @@ public class CreateGroupActivity extends DappActivity
     }
 
     protected void finalizePage1 () {
-        page1Bundle = page1.pullInformation();
+        page1Bundle = page1.pullInfo();
     }
 
     protected void startPage2 () {
@@ -89,7 +89,7 @@ public class CreateGroupActivity extends DappActivity
     }
 
     @Override
-    public void onPage2Interaction(CreateGroupPage2Fragment.Page2FragmentInteractionListener.RequestCode code) {
+    public void onPage2Interaction(CreateGroupPage2Fragment.RequestCode code) {
         switch (code) {
             case DONE:
                 finalizePage2();
@@ -99,7 +99,7 @@ public class CreateGroupActivity extends DappActivity
     }
 
     protected void finalizePage2 () {
-        page2Bundle = page2.pullInformation();
+        page2Bundle = page2.pullInfo();
     }
 
     protected void buildGroup () {
@@ -112,11 +112,11 @@ public class CreateGroupActivity extends DappActivity
 
         Group group = factory.withName(name)
                              .withBio(bio)
-                             .withLeader(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                             .withLeader(App.getApp().me().getUid())
                              .build();
 
-        if (editMode) group.saveToFirebase(DatabaseOperationCodes.UPDATE);
-        else group.fetchLocationAndSaveToFirebase(this, DatabaseOperationCodes.CREATE);
+        if (editMode) group.save(DatabaseOperationCodes.UPDATE);
+        else group.fetchLocationAndSave(this, DatabaseOperationCodes.CREATE);
     }
 
 

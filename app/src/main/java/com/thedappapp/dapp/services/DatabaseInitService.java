@@ -9,7 +9,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.thedappapp.dapp.app.Application;
+import com.thedappapp.dapp.app.App;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -56,18 +56,17 @@ public class DatabaseInitService extends IntentService {
         if (sAuth.getCurrentUser() == null) return; //do something
 
         DatabaseReference reference = sDatabase.getReference("user").child(sAuth.getCurrentUser().getUid());
-        Application.getApplication().setDatabaseReference(Application.References.USER, reference);
+        App.getApp().setDatabaseReference(App.References.USER, reference);
     }
 
     private void generateGroupReference() {
-        Application.getApplication()
-                   .getDatabaseReference(Application.References.USER).child("group")
+        App.getApp().getDatabaseReference(App.References.USER).child("group")
                    .addListenerForSingleValueEvent(new ValueEventListener() {
                        @Override
                        public void onDataChange(DataSnapshot dataSnapshot) {
                            String gid = dataSnapshot.getValue(String.class);
                            DatabaseReference reference = sDatabase.getReference("groups").child(gid);
-                           Application.getApplication().setDatabaseReference(Application.References.GROUP, reference);
+                           App.getApp().setDatabaseReference(App.References.GROUP, reference);
                        }
 
                        @Override

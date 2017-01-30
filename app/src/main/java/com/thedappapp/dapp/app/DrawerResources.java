@@ -8,7 +8,7 @@ import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.activities.DappActivity;
 import com.thedappapp.dapp.activities.ChatSelectorActivity;
 import com.thedappapp.dapp.activities.MyGroupActivity;
-import com.thedappapp.dapp.activities.InvitationViewerActivity;
+import com.thedappapp.dapp.activities.RequestsActivity;
 import com.thedappapp.dapp.activities.MapsActivity;
 import com.thedappapp.dapp.activities.FeedActivity;
 
@@ -69,7 +69,7 @@ public class DrawerResources {
 
     private static ProfileDrawerItem profile () {
         return new ProfileDrawerItem().withName(User.me().getUsername());
-        //.withIcon(Application.fetchProfileImageIfNecessary()); Deactivated.
+        //.withIcon(App.fetchProfileImageIfNecessary()); Deactivated.
     }
 
     public static IDrawerItem getCurrentlyLoadedActivityItem () {
@@ -94,7 +94,7 @@ public class DrawerResources {
                     break;
                 case REQUESTS:
                     Log.d(TAG, "Invitations item selected.");
-                    newClass = InvitationViewerActivity.class;
+                    newClass = RequestsActivity.class;
                     break;
                 case MAP:
                     Log.d(TAG, "Maps item selected.");
@@ -110,7 +110,7 @@ public class DrawerResources {
                     break;
                 case LOG_OUT:
                     Log.d(TAG, "Chat item selected.");
-                    Application.logout(sContext);
+                    App.logout(sContext);
                     return false;
                 default:
                     throw new RuntimeException("Illegal option selected.");

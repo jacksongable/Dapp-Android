@@ -5,7 +5,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.thedappapp.dapp.app.Application;
+import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.events.GroupDataEvent;
 import com.thedappapp.dapp.events.UserDataEvent;
 import com.thedappapp.dapp.objects.group.Group;
@@ -23,7 +23,7 @@ public class GroupDataListener {
 
     public static GroupDataListener getDefault () {
         if (singleton == null)
-            singleton = new GroupDataListener(Application.getApplication().getDatabaseReference(Application.References.GROUP));
+            singleton = new GroupDataListener(App.getApp().getDatabaseReference(App.References.GROUP));
         return singleton;
     }
 
@@ -75,6 +75,6 @@ public class GroupDataListener {
 
         mReference = FirebaseDatabase.getInstance().getReference("groups").child(event.getAttributeValue());
         refresh();
-        Application.getApplication().setDatabaseReference(Application.References.GROUP, mReference);
+        App.getApp().setDatabaseReference(App.References.GROUP, mReference);
     }
 }

@@ -3,4 +3,39 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false"> AIzaSyBqxnV9hr_oz6tboSt-yYn6BpQp3psKBtc </string>
+    <string name="who_are_you_with">Who are you with?</string>
+    <string name="recent">Recent</string>
+    <string name="search_by_username">Search by username</string>
+    <string name="members">Members</string>
+    <string name="name_yourselves">Name Yourselves</string>
+    <string name="make_it_dope">Make it dope.</string>
+    <string name="name">Name</string>
+    <string name="bio">Bio</string>
+    <string name="next">Next</string>
+    <string name="done">Done</string>
+    <string name="choose_your_interests">Choose your interests...</string>
+    <string name="rally_the_troops">Rally the troops!</string>
+    <string name="going_in_alone">I\'m going in alone</string>
+    <string name="log_out">Log Out</string>
+    <string name="home">Home</string>
+    <string name="map">Map</string>
+    <string name="feed">Feed</string>
+    <string name="log_in">Log In</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="log_in_with_facebook">Log in with Facebook</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up_with_facebook">Sign up with Facebook</string>
+    <string name="email">Email</string>
+    <string name="birthday">Birthday</string>
+    <string name="gender">Gender</string>
+    <string name="group_leader">Group Leader</string>
+    <string name="interests">Interests</string>
+    <string name="cancel">Cancel</string>
+    <string name="dapp_up">Dapp Up!</string>
+    <string name="where_s_your_squad">Where\'s your squad?</string>
+    <string name="disclaimer">By signing up for Dapp, you agree to Dapp\'s &lt;a href="http://www.thedappapp.com/user-agreement">User Agreement&lt;/a> and Privacy Policy."</string>
 </resources>

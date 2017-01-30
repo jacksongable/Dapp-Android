@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.widget.FrameLayout;
 
 import com.thedappapp.dapp.R;
-import com.thedappapp.dapp.app.Application;
+import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.app.DatabaseOperationCodes;
 import com.thedappapp.dapp.fragments.CurrentGroupFragment;
 import com.thedappapp.dapp.fragments.NoCurrentGroupFragment;
@@ -31,7 +31,7 @@ public class MainActivity extends DappActivity
 
     @Override
     protected void onStart() {
-        if (Application.getApplication().hasCurrentGroup())
+        if (App.getApp().hasCurrentGroup())
             onHasCurrentGroup();
         else onNoCurrentGroup();
     }
@@ -39,7 +39,7 @@ public class MainActivity extends DappActivity
     @Override
     protected void onRestart() {
         super.onRestart();
-        if (Application.getApplication().hasCurrentGroup())
+        if (App.getApp().hasCurrentGroup())
             onHasCurrentGroup();
         else onNoCurrentGroup();
     }
@@ -57,7 +57,7 @@ public class MainActivity extends DappActivity
     }
 
     public void onHasCurrentGroup() {
-        Group current = Application.getApplication().getCurrentGroup();
+        Group current = App.getApp().getCurrentGroup();
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment, CurrentGroupFragment.newInstance(current)).commitAllowingStateLoss();
     }
 
@@ -75,8 +75,8 @@ public class MainActivity extends DappActivity
 
     @Override
     public void onDeleteRequest(Group group) {
-        group.saveToFirebase(DatabaseOperationCodes.DELETE);
-        Application.getApplication().setCurrentGroup(null);
+        group.save(DatabaseOperationCodes.DELETE);
+        App.getApp().setCurrentGroup(null);
         onNoCurrentGroup();
     }
 }

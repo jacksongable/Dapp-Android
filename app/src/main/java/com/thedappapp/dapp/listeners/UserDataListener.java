@@ -3,9 +3,8 @@ package com.thedappapp.dapp.listeners;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.thedappapp.dapp.app.Application;
+import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.events.UserDataEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -20,7 +19,7 @@ public class UserDataListener {
 
     public static UserDataListener getDefault () {
         if (singleton == null)
-            singleton = new UserDataListener(FirebaseAuth.getInstance().getCurrentUser().getUid());
+            singleton = new UserDataListener(App.getApp().me().getUid());
         return singleton;
     }
 
@@ -63,13 +62,13 @@ public class UserDataListener {
     };
 
     public void enable () {
-        Application.getApplication().getDatabaseReference(Application.References.USER).child("group").addValueEventListener(groupChangeListener);
-        Application.getApplication().getDatabaseReference(Application.References.USER).child("first_name").addValueEventListener(displayNameListener);
+        App.getApp().getDatabaseReference(App.References.USER).child("group").addValueEventListener(groupChangeListener);
+        App.getApp().getDatabaseReference(App.References.USER).child("first_name").addValueEventListener(displayNameListener);
     }
 
     public void disable () {
-        Application.getApplication().getDatabaseReference(Application.References.USER).child("group").addValueEventListener(groupChangeListener);
-        Application.getApplication().getDatabaseReference(Application.References.USER).child("first_name").addValueEventListener(displayNameListener);
+        App.getApp().getDatabaseReference(App.References.USER).child("group").addValueEventListener(groupChangeListener);
+        App.getApp().getDatabaseReference(App.References.USER).child("first_name").addValueEventListener(displayNameListener);
     }
 
 }

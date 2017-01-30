@@ -9,12 +9,9 @@ import android.widget.TextView;
 
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.adapters.ChatSelectorAdapter;
-import com.thedappapp.dapp.app.Configuration;
-import com.thedappapp.dapp.app.StaticChatRoomReference;
-import com.thedappapp.dapp.objects.chat.Chatroom;
+import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.objects.chat.Conversation;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class ChatSelectorActivity extends DappActivity {
@@ -31,7 +28,7 @@ public class ChatSelectorActivity extends DappActivity {
     @Override
     protected void onStart() {
         vListSelector = (ListView) findViewById(R.id.chat_selector_list);
-        List<Conversation> rooms = Configuration.getChatrooms();
+        List<Conversation> rooms = App.getApp().getChatStorage().getConversations();
 
         if (rooms.isEmpty()) {
             TextView empty = (TextView) findViewById(R.id.no_content_message);

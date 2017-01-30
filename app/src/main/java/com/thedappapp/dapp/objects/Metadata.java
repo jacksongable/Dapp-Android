@@ -27,6 +27,12 @@ public class Metadata implements Parcelable {
         miscData = new HashMap<>();
     }
 
+    private Metadata(Parcel in) {
+        uid = in.readString();
+        created = in.readValue(Object.class.getClassLoader());
+        updated = in.readValue(Object.class.getClassLoader());
+    }
+
     public Object getCreated () {
         return created;
     }
@@ -95,12 +101,6 @@ public class Metadata implements Parcelable {
             return new Metadata[size];
         }
     };
-
-    private Metadata(Parcel in) {
-        uid = in.readString();
-        created = in.readValue(Object.class.getClassLoader());
-        updated = in.readValue(Object.class.getClassLoader());
-    }
 
 
 }

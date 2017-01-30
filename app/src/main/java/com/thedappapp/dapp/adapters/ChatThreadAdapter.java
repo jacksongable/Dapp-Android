@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.thedappapp.dapp.R;
+import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.objects.chat.Message;
 
 
@@ -68,7 +69,7 @@ public class ChatThreadAdapter extends BaseAdapter {
         }
         else holder = (ViewHolder) convertView.getTag();
 
-        boolean isSender = FirebaseAuth.getInstance().getCurrentUser().getDisplayName().equals(chatMessage.getSender());
+        boolean isSender = App.getApp().me().getDisplayName().equals(chatMessage.getSender());
 
         setAlignment(holder, isSender);
         holder.txtMessage.setText(chatMessage.getMessage());

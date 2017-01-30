@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.thedappapp.dapp.R;
+import com.thedappapp.dapp.app.App;
 
 public class NoCurrentGroupFragment extends Fragment {
 
@@ -47,7 +48,7 @@ public class NoCurrentGroupFragment extends Fragment {
         vCreateGroupButton = (Button) view.findViewById(R.id.create_group);
         vWelcome = (TextView) view.findViewById(R.id.hello_user);
 
-        String welcome = "Hello " + FirebaseAuth.getInstance().getCurrentUser().getDisplayName() + "!";
+        String welcome = "Hello " + App.getApp().me().getDisplayName() + "!";
         vWelcome.setText(welcome);
 
         vCreateGroupButton.setOnClickListener(new View.OnClickListener() {

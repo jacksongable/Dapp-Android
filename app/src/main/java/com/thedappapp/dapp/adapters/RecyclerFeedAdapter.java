@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,26 +13,28 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.firebase.ui.storage.images.FirebaseImageLoader;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.thedappapp.dapp.R;
-import com.thedappapp.dapp.activities.AbstractDappActivity;
-import com.thedappapp.dapp.activities.CreateGroupP1Activity;
+import com.thedappapp.dapp.activities.CreateGroupActivity;
 import com.thedappapp.dapp.activities.DappActivity;
 import com.thedappapp.dapp.activities.GroupDetailsActivity;
-import com.thedappapp.dapp.app.StaticGroupReference;
-import com.thedappapp.dapp.app.Configuration;
-import com.thedappapp.dapp.async.AsyncImageDownloader;
+import com.thedappapp.dapp.app.App;
+import com.thedappapp.dapp.app.DatabaseOperationCodes;
+import com.thedappapp.dapp.app.RequestStorage;
+import com.thedappapp.dapp.objects.Request;
 import com.thedappapp.dapp.objects.group.Group;
-import com.parse.ParseCloud;
-import com.thedappapp.dapp.objects.invite.Invite;
-import com.thedappapp.dapp.objects.invite.InviteFactory;
 
-import java.util.HashMap;
 import java.util.List;
 
 /**
  * Created by jackson on 8/20/16.
  */
 public class RecyclerFeedAdapter extends RecyclerView.Adapter<RecyclerFeedAdapter.ViewHolder> {
+
+    private static final String TAG = RecyclerFeedAdapter.class.getSimpleName();
 
     private Context mContext;
     private List<Group> mDataset;
@@ -52,8 +55,8 @@ public class RecyclerFeedAdapter extends RecyclerView.Adapter<RecyclerFeedAdapte
     public void onBindViewHolder(ViewHolder holder, int position) {
         final Group currentGroup = mDataset.get(position);
 
-        AsyncImageDownloader downloader = new AsyncImageDownloader(mContext, currentGroup, holder.pic);
-        downloader.execute();
+        StorageReference ref = FirebaseStorage.getInstance().getReference(currentGroup.getPhotoPath());
+        Glide.with(mContext).using(new FirebaseImageLoader()).load(ref).into(holder.pic);
 
         configureDappButton(holder, currentGroup);
 
@@ -70,11 +73,12 @@ public class RecyclerFeedAdapter extends RecyclerView.Adapter<RecyclerFeedAdapte
     }
 
     private void configureDappButton (ViewHolder holder, Group current) {
-        if (Configuration.hasDappedUp(current))
+        RequestStorage storage = App.getApp().getRequestStorage();
+        if (storage.hasDappedUp(current))
             configureDappButtonForPendingOutgoingRequest(holder);
-        else if (Configuration.isFriendsWith(current))
+        else if (storage.isFriends(current))
             configureDappButtonForFriends(holder);
-        else if (Configuration.isIncomingGroupPendingRequestAccept(current))
+        else if (storage.isDappedUpBy(current))
             configureDappButtonForPendingIncomingRequest(holder, current);
         else configureDappButtonForNoCurrentRelationship(holder, current);
     }
@@ -94,7 +98,9 @@ public class RecyclerFeedAdapter extends RecyclerView.Adapter<RecyclerFeedAdapte
         holder.dappUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Configuration.acceptRequest(holder.dappUp, current);
+                holder.dappUp.setText("Friends");
+                holder.dappUp.setEnabled(false);
+                App.getApp().getRequestStorage().get(current.getLeaderId()).accept();
             }
         });
     }
@@ -104,22 +110,22 @@ public class RecyclerFeedAdapter extends RecyclerView.Adapter<RecyclerFeedAdapte
         holder.dappUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (Configuration.getCurrentGroup() == null) {
+                if (App.getApp().getCurrentGroup() == null) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                     builder.setTitle("Oops!").setMessage("You must create a group before you dapp others up.");
 
                     builder.setPositiveButton("Create...", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            Intent intent = new Intent(mContext, CreateGroupP1Activity.class);
-                            intent.putExtra("edit", false);
+                            Intent intent = new Intent(mContext, CreateGroupActivity.class);
+                            intent.setAction(CreateGroupActivity.ACTION_CREATE);
                             mContext.startActivity(intent);
                         }
                     });
                     builder.setNegativeButton("Close", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            //Cancelled
+                            Log.i(TAG, "Cancelled");
                         }
                     });
 
@@ -127,16 +133,9 @@ public class RecyclerFeedAdapter extends RecyclerView.Adapter<RecyclerFeedAdapte
                 }
                 else {
                     configureDappButtonForPendingOutgoingRequest(holder);
-
-                    Configuration.onDappRequestSent(current);
-
-                    InviteFactory factory = new InviteFactory();
-                    factory.withFromGroup(Configuration.getCurrentGroup());
-                    factory.withToGroup(current);
-                    factory.withToUser(current.getLeaderAsUser());
-                    factory.withStatus("Invited");
-
-                    factory.build().saveInBackground();
+                    Request request = new Request(App.getApp().me().getUid(), current.getLeaderId());
+                    request.save(DatabaseOperationCodes.CREATE);
+                    App.getApp().getRequestStorage().putOutgoingRequest(request);
                 }
             }
         });
@@ -145,7 +144,7 @@ public class RecyclerFeedAdapter extends RecyclerView.Adapter<RecyclerFeedAdapte
     @Override
     public int getItemCount() {
         if (mDataset == null) return 0;
-        return mDataset.size();
+        else return mDataset.size();
     }
 
     protected class ViewHolder extends RecyclerView.ViewHolder {

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:id="@+id/container">
+
+    <include layout="@layout/content_toolbar"
+        android:id="@+id/toolbar" />
+
+    <include layout="@layout/content_empty_list_message"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_below="@id/toolbar" android:id="@+id/no_content_message"
+        android:layout_alignParentEnd="false"
+        android:layout_centerHorizontal="true" />
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/message_list"
+        android:layout_below="@id/no_content_message"
+        android:layout_above="@+id/edit_message" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/edit_message"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/send_message"
+        android:inputType="textMultiLine|textCapSentences"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Send"
+        android:id="@+id/send_message"
+        android:layout_alignTop="@id/edit_message"
+        android:layout_alignParentEnd="true"
+        />
+</RelativeLayout>

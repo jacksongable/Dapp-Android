@@ -8,10 +8,13 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import com.google.firebase.storage.StorageReference;
 import com.thedappapp.dapp.activities.DappActivity;
+import com.thedappapp.dapp.objects.PhotoReference;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.Reference;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -76,9 +79,9 @@ public class Camera {
         return mImageFile.getAbsolutePath();
     }
 
-    public static File getApplicationPhotoDirectory() {
+    private File getApplicationPhotoDirectory() {
         File externalDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        return new File (externalDirectory, "Application");
+        return new File (externalDirectory, "App");
     }
 }
 

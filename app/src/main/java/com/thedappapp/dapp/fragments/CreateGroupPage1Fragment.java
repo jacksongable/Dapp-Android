@@ -33,13 +33,11 @@ public class CreateGroupPage1Fragment extends Fragment {
         return fragment;
     }
 
-    boolean downloadFlag = true;
     private Button vNext;
     private ImageButton vCaptureImage;
     private EditText vGroupName, vGroupBio;
-    private Camera mCamera;
     private TextView error;
-    private boolean hasTakenPicture = false;
+    private boolean hasTakenPicture;
     private Group editGroup;
     private Page1FragmentInteractionListener mListener;
 
@@ -56,7 +54,7 @@ public class CreateGroupPage1Fragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null)
             editGroup = getArguments().getParcelable("edit");
-        mCamera = new Camera();
+        hasTakenPicture = false;
     }
 
     @Override
@@ -64,6 +62,10 @@ public class CreateGroupPage1Fragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_create_group_page1, container, false);
+    }
+
+    public void onPictureTaken () {
+        hasTakenPicture = true;
     }
 
     @Override
@@ -78,7 +80,7 @@ public class CreateGroupPage1Fragment extends Fragment {
         vCaptureImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.onPage1Interaction(Page1FragmentInteractionListener.RequestCode.DISPATCH_CAMERA);
+                mListener.onPage1Interaction(RequestCode.DISPATCH_CAMERA);
             }
         });
 
@@ -99,13 +101,13 @@ public class CreateGroupPage1Fragment extends Fragment {
                     return;
                 } else error.setVisibility(View.INVISIBLE);
 
-                mListener.onPage1Interaction(Page1FragmentInteractionListener.RequestCode.NEXT);
+                mListener.onPage1Interaction(RequestCode.DONE);
             }
         });
 
     }
 
-    public Bundle pullInformation() {
+    public Bundle pullInfo() {
         Bundle bundle = new Bundle();
         bundle.putString("name", vGroupName.getText().toString());
         bundle.putString("bio", vGroupBio.getText().toString());
@@ -118,11 +120,12 @@ public class CreateGroupPage1Fragment extends Fragment {
         mListener = null;
     }
 
+    public enum RequestCode {
+        DISPATCH_CAMERA,
+        DONE
+    }
+
     public interface Page1FragmentInteractionListener {
-        enum RequestCode {
-            DISPATCH_CAMERA,
-            DONE
-        }
         void onPage1Interaction(RequestCode code);
     }
 }

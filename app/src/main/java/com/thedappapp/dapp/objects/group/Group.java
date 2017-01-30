@@ -6,24 +6,25 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
 import com.firebase.geofire.GeoLocation;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.app.DatabaseOperationCodes;
 import com.thedappapp.dapp.async.Locator;
-import com.thedappapp.dapp.objects.AbstractFirebaseObject;
+import com.thedappapp.dapp.objects.DappObject;
 import com.thedappapp.dapp.objects.Metadata;
 
 /**
  * Created by jackson on 8/20/16.
  */
-public class Group extends AbstractFirebaseObject {
+public class Group extends DappObject {
 
-    private String name, bio, leader;
+    private String name, bio, leaderId, photoPath;
     private List<String> interests;
     private GeoLocation location;
 
@@ -32,14 +33,14 @@ public class Group extends AbstractFirebaseObject {
     Group (String name, String bio, String leaderId, List<String> interests) {
         this.name = name;
         this.bio = bio;
-        this.leader = leaderId;
+        this.leaderId = leaderId;
         this.interests = interests;
     }
 
     private Group(Parcel in) {
         name = in.readString();
         bio = in.readString();
-        leader = in.readString();
+        leaderId = in.readString();
         interests = new ArrayList<>();
         in.readStringList(interests);
         meta = in.readParcelable(Metadata.class.getClassLoader());
@@ -75,8 +76,12 @@ public class Group extends AbstractFirebaseObject {
         return this.bio;
     }
 
-    public String getLeader() {
-        return this.leader;
+    public String getLeaderId() {
+        return this.leaderId;
+    }
+
+    public String getPhotoPath () {
+        return photoPath;
     }
 
     public List<String> getInterests () {
@@ -90,12 +95,12 @@ public class Group extends AbstractFirebaseObject {
 
     @Exclude
     public boolean isMine () {
-        return leader.equals(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        return leaderId.equals(App.getApp().me().getUid());
     }
 
     @Exclude
     @Override
-    public void saveToFirebase (@NonNull DatabaseOperationCodes code) {
+    protected void saveInternal(@NonNull DatabaseOperationCodes code) {
         if (code == DatabaseOperationCodes.DO_NOTHING)
             return;
 
@@ -119,9 +124,9 @@ public class Group extends AbstractFirebaseObject {
         }
     }
 
-    public void fetchLocationAndSaveToFirebase (Context context, DatabaseOperationCodes code) {
+    public void fetchLocationAndSave(Context context, DatabaseOperationCodes code) {
         if (code == DatabaseOperationCodes.DELETE)
-            saveToFirebase(code);
+            save(code);
         else {
             Locator locator = new Locator(context, code);
             locator.execute(this);
@@ -144,7 +149,7 @@ public class Group extends AbstractFirebaseObject {
     public void writeToParcel(Parcel out, int flag) {
         out.writeString(name);
         out.writeString(bio);
-        out.writeString(leader);
+        out.writeString(leaderId);
         out.writeStringList(interests);
         out.writeParcelable(meta, 0);
         out.writeDouble(location.latitude);

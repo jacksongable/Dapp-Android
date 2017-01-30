@@ -41,7 +41,9 @@
         <activity android:name=".activities.FeedActivity" />
         <activity android:name=".activities.GroupDetailsActivity" />
         <activity android:name=".activities.ChatSelectorActivity" />
-        <activity android:name=".activities.ChatThreadActivity"></activity>
+        <activity android:name=".activities.ChatThreadActivity" />
+        <activity android:name=".activities.RequestsActivity" />
+
     </application>
 
 </manifest>

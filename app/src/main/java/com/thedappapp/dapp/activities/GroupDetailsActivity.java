@@ -11,11 +11,22 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.firebase.ui.storage.images.FirebaseImageLoader;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.thedappapp.dapp.R;
+import com.thedappapp.dapp.app.App;
+import com.thedappapp.dapp.app.DatabaseOperationCodes;
+import com.thedappapp.dapp.app.RequestStorage;
 import com.thedappapp.dapp.interfaces.NoToolbar;
-import com.thedappapp.dapp.objects.chat.Chatroom;
+import com.thedappapp.dapp.objects.chat.Conversation;
 import com.thedappapp.dapp.objects.group.Group;
-import com.thedappapp.dapp.objects.invite.Invite;
+import com.thedappapp.dapp.objects.Request;
 
 public class GroupDetailsActivity extends DappActivity implements NoToolbar {
 
@@ -57,10 +68,11 @@ public class GroupDetailsActivity extends DappActivity implements NoToolbar {
         configureDappButton();
 
         vGroupName.setText(theGroup.getName());
-        vLeader.setText(theGroup.getLeader());
+        vLeader.setText(theGroup.getLeaderId());
         vBio.setText(theGroup.getBio());
-        AsyncImageDownloader downloader = new AsyncImageDownloader(this, theGroup, vGroupPic);
-        downloader.execute();
+
+        StorageReference pic = FirebaseStorage.getInstance().getReference(theGroup.getPhotoPath());
+        Glide.with(this).using(new FirebaseImageLoader()).load(pic).into(vGroupPic);
 
         LinearLayout interestHolder = (LinearLayout) findViewById(R.id.interest_holder);
 
@@ -98,12 +110,17 @@ public class GroupDetailsActivity extends DappActivity implements NoToolbar {
     }
 
     private void configureDappButton () {
-        if (Configuration.hasDappedUp(theGroup))
+        RequestStorage storage = App.getApp().getRequestStorage();
+
+        if (storage.hasDappedUp(theGroup))
             configureDappButtonForPendingOutgoingRequest();
-        else if (Configuration.isFriendsWith(theGroup))
+
+        else if (storage.isFriends(theGroup))
             configureDappButtonForFriends();
-        else if (Configuration.isIncomingGroupPendingRequestAccept(theGroup))
+
+        else if (storage.isDappedUpBy(theGroup))
             configureDappButtonForPendingIncomingRequest();
+
         else configureDappButtonForNoCurrentRelationship();
     }
 
@@ -122,12 +139,29 @@ public class GroupDetailsActivity extends DappActivity implements NoToolbar {
         dapp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Invite i = Configuration.parseInviteFromGroup(theGroup);
-                Chatroom room = Configuration.acceptRequest(dapp, theGroup);
-                configureDappButtonForFriends();
-                StaticChatRoomReference.setReference(room);
-                Intent i = new Intent(GroupDetailsActivity.this, ChatThreadActivity.class);
-                startActivity(i);
+                final App myApp = App.getApp();
+                myApp.USER_REQUEST_ROOT.child(theGroup.getLeaderId()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        String requestId = dataSnapshot.child("id").getValue(String.class);
+                        String from = dataSnapshot.child("from").getValue(String.class);
+
+                        myApp.getRequestStorage().get(from).accept();
+
+                        Conversation conversation = new Conversation(from);
+                        conversation.save(DatabaseOperationCodes.CREATE);
+
+                        configureDappButtonForFriends();
+                        Intent intent = new Intent(GroupDetailsActivity.this, ChatThreadActivity.class);
+                        intent.putExtra("conversation", conversation);
+                        startActivity(intent);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
             }
         });
     }
@@ -137,15 +171,15 @@ public class GroupDetailsActivity extends DappActivity implements NoToolbar {
         dapp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (Configuration.getCurrentGroup() == null) {
+                if (!App.getApp().hasCurrentGroup()) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(GroupDetailsActivity.this);
                     builder.setTitle("Oops!").setMessage("You must create a group before you dapp others up.");
 
                     builder.setPositiveButton("Create...", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            Intent intent = new Intent(GroupDetailsActivity.this, CreateGroupP1Activity.class);
-                            intent.putExtra("edit", false);
+                            Intent intent = new Intent(GroupDetailsActivity.this, CreateGroupActivity.class);
+                            intent.setAction(CreateGroupActivity.ACTION_CREATE);
                             GroupDetailsActivity.this.startActivity(intent);
                         }
                     });
@@ -160,7 +194,8 @@ public class GroupDetailsActivity extends DappActivity implements NoToolbar {
                 }
                 else {
                     configureDappButtonForPendingOutgoingRequest();
-                    Configuration.sendDappRequest(theGroup);
+                    Request request = new Request(App.getApp().me().getUid(), theGroup.getLeaderId());
+                    App.getApp().sendRequest(request);
                 }
             }
         });

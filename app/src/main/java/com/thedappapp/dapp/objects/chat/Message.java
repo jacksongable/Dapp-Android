@@ -10,14 +10,13 @@ import com.google.firebase.database.Exclude;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.thedappapp.dapp.app.DatabaseOperationCodes;
-import com.thedappapp.dapp.objects.AbstractFirebaseObject;
+import com.thedappapp.dapp.objects.DappObject;
 import com.thedappapp.dapp.objects.Metadata;
-import com.thedappapp.dapp.objects.group.Group;
 
 /**
  * Created by jackson on 8/19/16.
  */
-public class Message extends AbstractFirebaseObject {
+public class Message extends DappObject {
 
     private String message, sender;
 
@@ -51,10 +50,8 @@ public class Message extends AbstractFirebaseObject {
     }
 
     @Override
-    public void saveToFirebase(@NonNull DatabaseOperationCodes code) {
-        if (code == DatabaseOperationCodes.DO_NOTHING)
-            return;
-        else if (code == DatabaseOperationCodes.UPDATE)
+    protected void saveInternal(@NonNull DatabaseOperationCodes code) {
+        if (code == DatabaseOperationCodes.UPDATE)
             throw new IllegalArgumentException("Cannot update a sent chat message.");
 
         else if (convoId == null)
@@ -62,12 +59,11 @@ public class Message extends AbstractFirebaseObject {
 
         else if (code == DatabaseOperationCodes.DELETE) {
             FirebaseDatabase.getInstance().getReference("chat").child(convoId).child("messages").child(super.meta.getUid()).setValue(null);
-            return;
         }
         else {
-            DatabaseReference msgRef = FirebaseDatabase.getInstance().getReference("chat").child(convoId).child("messages");
+            DatabaseReference msgRef = FirebaseDatabase.getInstance().getReference("chat").child(convoId).child("messages").push();
             super.meta = new Metadata(msgRef.getKey(), ServerValue.TIMESTAMP, null);
-            msgRef.push().setValue(this);
+            msgRef.setValue(this);
         }
     }
 

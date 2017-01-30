@@ -4,11 +4,9 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.parse.ParseGeoPoint;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.objects.group.Group;
 import com.thedappapp.dapp.adapters.MapInfoWindowAdapter;
-import com.thedappapp.dapp.app.Dapp;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -17,9 +15,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.parse.FindCallback;
-import com.parse.ParseException;
-import com.parse.ParseQuery;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -48,7 +43,6 @@ public class MapsActivity extends DappActivity implements OnMapReadyCallback {
         mMap.setMyLocationEnabled(true);
         addGroupMarkers();
 
-        // Add a marker in Sydney and move the camera
         final LatLng MANHATTAN = new LatLng(40.782832, -73.965387);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(MANHATTAN, 12));
     }

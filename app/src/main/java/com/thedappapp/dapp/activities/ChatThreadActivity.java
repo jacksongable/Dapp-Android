@@ -7,15 +7,13 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.thedappapp.dapp.adapters.ChatThreadAdapter;
-
 import com.thedappapp.dapp.R;
-import com.thedappapp.dapp.app.Configuration;
+import com.thedappapp.dapp.app.App;
+import com.thedappapp.dapp.app.ChatStorage;
 import com.thedappapp.dapp.app.DatabaseOperationCodes;
 import com.thedappapp.dapp.objects.chat.Conversation;
 import com.thedappapp.dapp.objects.chat.Message;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +22,7 @@ public class ChatThreadActivity extends DappActivity {
     private EditText messageET;
     private ListView messagesContainer;
     private Button sendBtn;
-    private Conversation mRoom;
+    private Conversation mConversation;
     private ChatThreadAdapter adapter;
     private TextView nocontent;
 
@@ -33,17 +31,17 @@ public class ChatThreadActivity extends DappActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_thread);
         nocontent = (TextView) findViewById(R.id.no_content_message);
+        messagesContainer = (ListView) findViewById(R.id.message_list);
+        messageET = (EditText) findViewById(R.id.edit_message);
+        sendBtn = (Button) findViewById(R.id.send_message);
+        mConversation = getIntent().getExtras().getParcelable("conversation");
+
+        setTitle(mConversation.getOtherUser());
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        mRoom = getIntent().getExtras().getParcelable("conversation");
-        setTitle(mRoom.getOtherGroup().getName());
-
-        messagesContainer = (ListView) findViewById(R.id.message_list);
-        messageET = (EditText) findViewById(R.id.edit_message);
-        sendBtn = (Button) findViewById(R.id.send_message);
 
         loadHistory();
 
@@ -53,7 +51,7 @@ public class ChatThreadActivity extends DappActivity {
             @Override
             public void onClick(View v) {
                 String msg = messageET.getText().toString();
-                String from = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+                String from = App.getApp().me().getDisplayName();
 
                 Message message = new Message(msg, from);
 
@@ -65,7 +63,7 @@ public class ChatThreadActivity extends DappActivity {
     }
 
     private void loadHistory(){
-        List<Message> messages = Configuration.getMessagesFromRoom(mRoom);
+        List<Message> messages = ChatStorage.getStorage().getMessages(mConversation);
         if (messages == null) {
             nocontent.setText("Start chatting!");
             nocontent.setVisibility(View.VISIBLE);
@@ -86,7 +84,7 @@ public class ChatThreadActivity extends DappActivity {
     private void sendMessage (Message message) {
         if (nocontent.getVisibility() == View.VISIBLE)
             nocontent.setVisibility(View.GONE);
-        message.intoConversation(mRoom.getMeta().getUid()).saveToFirebase(DatabaseOperationCodes.CREATE);
+        message.intoConversation(mConversation.getMeta().getUid()).save(DatabaseOperationCodes.CREATE);
     }
 
     private void scroll() {

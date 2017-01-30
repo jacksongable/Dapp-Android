@@ -66,7 +66,7 @@ public class CreateGroupPage2Fragment extends Fragment {
         mListener = null;
     }
 
-    public Bundle pullInformation () {
+    public Bundle pullInfo() {
         Bundle bundle = new Bundle();
         ArrayList<String> interests = new ArrayList<>();
 
@@ -74,10 +74,11 @@ public class CreateGroupPage2Fragment extends Fragment {
         return bundle;
     }
 
+    public enum RequestCode {
+        DONE
+    }
+
     public interface Page2FragmentInteractionListener {
-        enum RequestCode {
-            DONE
-        }
         void onPage2Interaction(RequestCode code);
     }
 }

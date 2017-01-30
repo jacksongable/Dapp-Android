@@ -8,22 +8,28 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
-import com.thedappapp.dapp.app.Application;
+import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.app.DatabaseOperationCodes;
-import com.thedappapp.dapp.objects.AbstractFirebaseObject;
+import com.thedappapp.dapp.objects.DappObject;
 import com.thedappapp.dapp.objects.Metadata;
-import com.thedappapp.dapp.objects.group.Group;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by jackson on 8/20/16.
  */
-public class Conversation extends AbstractFirebaseObject {
+public class Conversation extends DappObject {
 
     private List<Message> messages;
+    private String user1Id, user2Id;
 
     public Conversation() {}
+
+    public Conversation(String otherUserId) {
+        user1Id = App.getApp().me().getUid();
+        user2Id = otherUserId;
+    }
 
     private Conversation(Parcel in) {
         super.meta = in.readParcelable(Metadata.class.getClassLoader());
@@ -32,16 +38,9 @@ public class Conversation extends AbstractFirebaseObject {
 
     @Exclude
     @Override
-    public void saveToFirebase (@NonNull DatabaseOperationCodes code) {
-        if (code == DatabaseOperationCodes.DO_NOTHING)
-            return;
-
-        if (meta == null && code != DatabaseOperationCodes.CREATE)
-            throw new IllegalStateException("You must create the group object in the database before deleting or updating it.");
-
-        else if (code == DatabaseOperationCodes.DELETE) {
+    protected void saveInternal(@NonNull DatabaseOperationCodes code) {
+        if (code == DatabaseOperationCodes.DELETE) {
             FirebaseDatabase.getInstance().getReference("groups").child(meta.getUid()).setValue(null);
-            return;
         } else {
             DatabaseReference groupReference = FirebaseDatabase.getInstance().getReference("groups");
             switch (code) {
@@ -55,6 +54,18 @@ public class Conversation extends AbstractFirebaseObject {
                     break;
             }
         }
+    }
+
+    @Exclude
+    public String getOtherUser () {
+        String title = null;
+        Map<String, Object> map = super.meta.getAllMiscellaneousData();
+        String[] people = (String[]) map.values().toArray();
+
+        for (String person : people)
+            if (!(person.equals(App.getApp().me().getDisplayName())))
+                title = person;
+        return title;
     }
 
     @Override
