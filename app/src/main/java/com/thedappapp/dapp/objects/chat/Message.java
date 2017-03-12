@@ -9,7 +9,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
-import com.thedappapp.dapp.app.DatabaseOperationCodes;
+import com.thedappapp.dapp.app.SaveKeys;
 import com.thedappapp.dapp.objects.DappObject;
 import com.thedappapp.dapp.objects.Metadata;
 
@@ -50,14 +50,14 @@ public class Message extends DappObject {
     }
 
     @Override
-    protected void saveInternal(@NonNull DatabaseOperationCodes code) {
-        if (code == DatabaseOperationCodes.UPDATE)
+    protected void saveInternal(@NonNull SaveKeys code) {
+        if (code == SaveKeys.UPDATE)
             throw new IllegalArgumentException("Cannot update a sent chat message.");
 
         else if (convoId == null)
             throw new IllegalStateException("Call intoConversation(String) first so we know what conversation to save the message to.");
 
-        else if (code == DatabaseOperationCodes.DELETE) {
+        else if (code == SaveKeys.DELETE) {
             FirebaseDatabase.getInstance().getReference("chat").child(convoId).child("messages").child(super.meta.getUid()).setValue(null);
         }
         else {

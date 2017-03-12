@@ -8,15 +8,11 @@ import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.app.DrawerResources;
 
-import com.thedappapp.dapp.events.GroupDataEvent;
+import com.thedappapp.dapp.interfaces.NoDatabase;
 import com.thedappapp.dapp.interfaces.NoToolbar;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.thedappapp.dapp.interfaces.ToolbarWithoutDrawer;
-import com.thedappapp.dapp.listeners.GroupDataListener;
-import com.thedappapp.dapp.listeners.UserDataListener;
-
-import org.greenrobot.eventbus.Subscribe;
 
 /**
  * The abstract root activity that all activities in this app should inherit from. This class provides
@@ -32,8 +28,9 @@ public abstract class DappActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        UserDataListener.getDefault().enable();
-        GroupDataListener.getDefault().enable();
+        if (!(this instanceof NoDatabase)) {
+
+        }
         if (this instanceof NoToolbar)
             return;
         else setToolbar();
@@ -71,16 +68,20 @@ public abstract class DappActivity extends AppCompatActivity {
         }
     }
 
+    /*
     @Subscribe
     public void onGroupDataUpdate (GroupDataEvent event) {
         Log.i(getClass().getSimpleName(), "GroupDataEvent recieved from bus.");
         App.getApp().setCurrentGroup(event.getNewGroup());
+        App.getApp().USER.child(App.getApp().me().getUid()).child("group").setValue(event.getNewGroup().getMeta().getUid());
     }
+    */
 
     @Override
     protected void onStop () {
         super.onStop();
-        UserDataListener.getDefault().disable();
-        GroupDataListener.getDefault().disable();
+        if (!(this instanceof NoDatabase)) {
+
+        }
     }
 }

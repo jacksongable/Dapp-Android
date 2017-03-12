@@ -8,7 +8,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.thedappapp.dapp.app.App;
-import com.thedappapp.dapp.app.DatabaseOperationCodes;
+import com.thedappapp.dapp.app.SaveKeys;
 import com.thedappapp.dapp.objects.chat.Conversation;
 
 
@@ -50,12 +50,12 @@ public class Request extends DappObject {
     }
 
     @Override
-    protected void saveInternal(@NonNull DatabaseOperationCodes code) {
-        if (code == DatabaseOperationCodes.DO_NOTHING)
+    protected void saveInternal(@NonNull SaveKeys code) {
+        if (code == SaveKeys.DO_NOTHING)
             return;
-        if (code == DatabaseOperationCodes.UPDATE)
+        if (code == SaveKeys.UPDATE)
             throw new IllegalArgumentException("Cannot update a sent chat message.");
-        else if (code == DatabaseOperationCodes.DELETE) {
+        else if (code == SaveKeys.DELETE) {
             FirebaseDatabase.getInstance().getReference("requests").child(super.meta.getUid()).setValue(null);
         }
         else {
@@ -67,10 +67,10 @@ public class Request extends DappObject {
 
     public Conversation accept () {
         status = "Accepted";
-        super.save(DatabaseOperationCodes.UPDATE);
+        super.save(SaveKeys.UPDATE);
         App.getApp().getRequestStorage().onIncomingRequestAccepted(this);
         Conversation conversation = new Conversation(from);
-        conversation.save(DatabaseOperationCodes.CREATE);
+        conversation.save(SaveKeys.CREATE);
         return conversation;
     }
 

@@ -24,9 +24,9 @@ import java.util.Map;
  * Created by jackson on 1/23/17.
  */
 
-public class PushReceiverService extends FirebaseMessagingService {
+public class FcmReceiverService extends FirebaseMessagingService {
 
-    private static final String TAG = PushReceiverService.class.getSimpleName();
+    private static final String TAG = FcmReceiverService.class.getSimpleName();
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
@@ -42,18 +42,18 @@ public class PushReceiverService extends FirebaseMessagingService {
     }
 
     private void doMessage (String roomId) {
-        App.getApp().CONVO_ROOT.child(roomId).addListenerForSingleValueEvent(new ValueEventListener() {
+        App.getApp().CHAT.child(roomId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Intent intent = new Intent(PushReceiverService.this, ChatThreadActivity.class);
+                Intent intent = new Intent(FcmReceiverService.this, ChatThreadActivity.class);
                 Conversation conversation = dataSnapshot.getValue(Conversation.class);
 
                 intent.putExtra("conversation", conversation);
-                PendingIntent pendingIntent = PendingIntent.getActivity(PushReceiverService.this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+                PendingIntent pendingIntent = PendingIntent.getActivity(FcmReceiverService.this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
                 NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(PushReceiverService.this);
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(FcmReceiverService.this);
                 builder.setContentTitle("USERNAME HERE");
                 builder.setContentText("MESSAGE HERE");
                 builder.setAutoCancel(true);
@@ -71,18 +71,18 @@ public class PushReceiverService extends FirebaseMessagingService {
     }
 
     private void doInvite (String groupId) {
-        App.getApp().GROUP_ROOT.child(groupId).addListenerForSingleValueEvent(new ValueEventListener() {
+        App.getApp().GROUPS.child(groupId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Intent intent = new Intent(PushReceiverService.this, GroupDetailsActivity.class);
+                Intent intent = new Intent(FcmReceiverService.this, GroupDetailsActivity.class);
                 Group group = dataSnapshot.getValue(Group.class);
 
                 intent.putExtra("group", group);
-                PendingIntent pendingIntent = PendingIntent.getActivity(PushReceiverService.this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+                PendingIntent pendingIntent = PendingIntent.getActivity(FcmReceiverService.this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
                 NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(PushReceiverService.this);
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(FcmReceiverService.this);
                 builder.setContentTitle("New Request");
                 builder.setContentText("blank dapped you up!");
                 builder.setAutoCancel(true);

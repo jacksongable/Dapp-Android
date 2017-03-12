@@ -2,18 +2,22 @@ package com.thedappapp.dapp.activities;
 
 import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
+
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.app.Camera;
-import com.thedappapp.dapp.app.DatabaseOperationCodes;
+import com.thedappapp.dapp.app.SaveKeys;
 import com.thedappapp.dapp.fragments.CreateGroupPage1Fragment;
 import com.thedappapp.dapp.fragments.CreateGroupPage2Fragment;
 import com.thedappapp.dapp.objects.group.Group;
 import com.thedappapp.dapp.objects.group.GroupFactory;
+
 import java.util.List;
 
 public class CreateGroupActivity extends DappActivity
         implements CreateGroupPage1Fragment.Page1FragmentInteractionListener, CreateGroupPage2Fragment.Page2FragmentInteractionListener {
+
+    private static final String TAG = CreateGroupActivity.class.getSimpleName();
 
     private FragmentManager fragmentManager;
     private int fragment;
@@ -38,13 +42,9 @@ public class CreateGroupActivity extends DappActivity
         else if (ACTION_EDIT.equals(action))
             editMode = true;
 
-        if (getIntent().getExtras().getParcelable("editGroup") == null)
-            editMode = false;
-        else editMode = true;
-
         fragmentManager = getSupportFragmentManager();
         fragment = R.id.fragment;
-        camera = new Camera();
+        camera = new Camera(this);
 
         if (editMode) {
             page1 = CreateGroupPage1Fragment.newInstance((Group) getIntent().getExtras().getParcelable("edit"));
@@ -57,7 +57,7 @@ public class CreateGroupActivity extends DappActivity
         startPage1();
     }
 
-    protected void startPage1 () {
+    protected void startPage1() {
         fragmentManager.beginTransaction()
                 .replace(fragment, page1)
                 .commitAllowingStateLoss();
@@ -68,24 +68,25 @@ public class CreateGroupActivity extends DappActivity
         switch (code) {
             case DISPATCH_CAMERA:
                 page1.onPictureTaken();
-                camera.dispatch(this);
+                camera.dispatch();
                 break;
             case DONE:
                 finalizePage1();
                 startPage2();
                 break;
-            default: throw new IllegalArgumentException("Illegal request code received.");
+            default:
+                throw new IllegalArgumentException("Illegal request code received.");
         }
     }
 
-    protected void finalizePage1 () {
+    protected void finalizePage1() {
         page1Bundle = page1.pullInfo();
     }
 
-    protected void startPage2 () {
+    protected void startPage2() {
         fragmentManager.beginTransaction()
-                       .replace(fragment, page2)
-                       .commitAllowingStateLoss();
+                .replace(fragment, page2)
+                .commitAllowingStateLoss();
     }
 
     @Override
@@ -94,30 +95,34 @@ public class CreateGroupActivity extends DappActivity
             case DONE:
                 finalizePage2();
                 buildGroup();
-            default: throw new IllegalArgumentException("Illegal request code received.");
+                break;
+            default:
+                throw new IllegalArgumentException("Illegal request code received.");
         }
     }
 
-    protected void finalizePage2 () {
+    protected void finalizePage2() {
         page2Bundle = page2.pullInfo();
     }
 
-    protected void buildGroup () {
+    protected void buildGroup() {
         String name = page1Bundle.getString("name");
         String bio = page1Bundle.getString("bio");
-        //photo
+
         List<String> interests = page2Bundle.getStringArrayList("interests");
 
         GroupFactory factory = new GroupFactory();
 
         Group group = factory.withName(name)
-                             .withBio(bio)
-                             .withLeader(App.getApp().me().getUid())
-                             .build();
+                .withBio(bio)
+                .withLeaderId(App.getApp().me().getUid())
+                .withLeaderName(App.getApp().me().getDisplayName())
+                .withInterests(interests)
+                .withPic(camera.getCapturedImagePath())
+                .build();
 
-        if (editMode) group.save(DatabaseOperationCodes.UPDATE);
-        else group.fetchLocationAndSave(this, DatabaseOperationCodes.CREATE);
+        if (editMode) group.fetchLocationAndSave(this, SaveKeys.UPDATE);
+        else group.fetchLocationAndSave(this, SaveKeys.CREATE);
+        finish();
     }
-
-
 }

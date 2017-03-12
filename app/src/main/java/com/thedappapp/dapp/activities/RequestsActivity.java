@@ -23,7 +23,7 @@ public class RequestsActivity extends DappActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recycler);
-        List<Request> invites = App.getApp().getRequestStorage().getIncomingRequests();
+        List<Request> invites = App.getApp().getRequestStorage().getIncomingAsList();
         TextView noContent = (TextView) findViewById(R.id.no_content_message);
         noContent.setText("You have no requests yet! :(");
 

@@ -13,7 +13,9 @@ import android.widget.TextView;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.objects.group.Group;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by jackson on 12/18/16.
@@ -37,7 +39,7 @@ public class InterestGridAdapter extends BaseAdapter {
     };
 
     private String[] interests = {
-            "Food", "Live Events", "Music", "Gaming", "Sports", "Parties"
+            "Food", "Entertainment", "Music", "Gaming", "Sports", "Party"
     };
 
     public InterestGridAdapter (Context c) {
@@ -118,16 +120,28 @@ public class InterestGridAdapter extends BaseAdapter {
         return layout;
     }
 
-    public boolean hasInterest (Group.Interests interest) {
-        switch (interest) {
-            case FOOD: return interested[0];
-            case EVENTS: return interested[1];
-            case MUSIC: return interested[2];
-            case GAMING: return interested[3];
-            case SPORTS: return interested[4];
-            case PARTY: return interested[5];
-            default: return false;
-        }
+    public List<String> getInterests () {
+        List<String> interests = new ArrayList<>();
+        for (int index = 0; index < interested.length; index++)
+            if (interested[index])
+                interests.add(this.interests[index]);
+        return interests;
+    }
+
+    public boolean hasInterest (String interest) {
+        if (interest.equalsIgnoreCase("food"))
+            return interested[0];
+        else if (interest.equalsIgnoreCase("entertainment"))
+            return interested[1];
+        else if (interest.equalsIgnoreCase("music"))
+            return interested[2];
+        else if (interest.equalsIgnoreCase("gaming"))
+            return interested[3];
+        else if (interest.equalsIgnoreCase("sports"))
+            return interested[4];
+        else if (interest.equalsIgnoreCase("party"))
+            return interested[5];
+        else return false;
     }
 
 

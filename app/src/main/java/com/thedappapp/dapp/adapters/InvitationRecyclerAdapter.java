@@ -14,7 +14,6 @@ import com.bumptech.glide.Glide;
 import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -53,11 +52,11 @@ public class InvitationRecyclerAdapter extends RecyclerView.Adapter<InvitationRe
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         String fromUser = mDataset.get(position).getFrom();
-        App.getApp().USER_ROOT.child(fromUser).addListenerForSingleValueEvent(new ValueEventListener() {
+        App.getApp().USER.child(fromUser).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String groupId = dataSnapshot.child("group").getValue(String.class);
-                App.getApp().GROUP_ROOT.child(groupId).addListenerForSingleValueEvent(new ValueEventListener() {
+                App.getApp().GROUPS.child(groupId).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Group group = dataSnapshot.getValue(Group.class);

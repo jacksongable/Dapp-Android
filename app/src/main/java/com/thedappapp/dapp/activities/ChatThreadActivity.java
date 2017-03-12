@@ -10,8 +10,7 @@ import android.widget.TextView;
 import com.thedappapp.dapp.adapters.ChatThreadAdapter;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.app.App;
-import com.thedappapp.dapp.app.ChatStorage;
-import com.thedappapp.dapp.app.DatabaseOperationCodes;
+import com.thedappapp.dapp.app.SaveKeys;
 import com.thedappapp.dapp.objects.chat.Conversation;
 import com.thedappapp.dapp.objects.chat.Message;
 import java.util.ArrayList;
@@ -63,7 +62,7 @@ public class ChatThreadActivity extends DappActivity {
     }
 
     private void loadHistory(){
-        List<Message> messages = ChatStorage.getStorage().getMessages(mConversation);
+        List<Message> messages = App.getApp().getChatStorage().getMessages(mConversation);
         if (messages == null) {
             nocontent.setText("Start chatting!");
             nocontent.setVisibility(View.VISIBLE);
@@ -84,7 +83,7 @@ public class ChatThreadActivity extends DappActivity {
     private void sendMessage (Message message) {
         if (nocontent.getVisibility() == View.VISIBLE)
             nocontent.setVisibility(View.GONE);
-        message.intoConversation(mConversation.getMeta().getUid()).save(DatabaseOperationCodes.CREATE);
+        message.intoConversation(mConversation.getMeta().getUid()).save(SaveKeys.CREATE);
     }
 
     private void scroll() {

@@ -2,14 +2,20 @@ package com.thedappapp.dapp.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.app.App;
 
@@ -48,7 +54,24 @@ public class NoCurrentGroupFragment extends Fragment {
         vCreateGroupButton = (Button) view.findViewById(R.id.create_group);
         vWelcome = (TextView) view.findViewById(R.id.hello_user);
 
-        String welcome = "Hello " + App.getApp().me().getDisplayName() + "!";
+        /*
+        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                .setDisplayName("Jane Q. User").build();
+
+        App.getApp().me().updateProfile(profileUpdates)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d(NoCurrentGroupFragment.class.getSimpleName(), "User profile updated.");
+                        }
+                    }
+                });
+                */
+
+        String name = App.getApp().me().getDisplayName();
+
+        String welcome = "Hello " + name + "!";
         vWelcome.setText(welcome);
 
         vCreateGroupButton.setOnClickListener(new View.OnClickListener() {
@@ -58,5 +81,7 @@ public class NoCurrentGroupFragment extends Fragment {
             }
         });
     }
+
+
 
 }

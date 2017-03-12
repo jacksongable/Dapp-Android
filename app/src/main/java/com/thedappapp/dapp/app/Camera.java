@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.firebase.storage.StorageReference;
 import com.thedappapp.dapp.activities.DappActivity;
@@ -14,7 +15,6 @@ import com.thedappapp.dapp.objects.PhotoReference;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.ref.Reference;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -26,11 +26,14 @@ public class Camera {
     private static final String TAG = Camera.class.getSimpleName();;
     private static final int REQUEST_TAKE_PHOTO = 1;
 
+    private Activity context;
     private File mImageFile;
 
-    public Camera() {}
+    public Camera(Activity context) {
+        this.context = context;
+    }
 
-    public void dispatch(DappActivity context) {
+    public void dispatch() {
         Intent imageCaptureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         // Ensure that there's a camera activity to handle the intent
@@ -53,13 +56,22 @@ public class Camera {
     }
 
     private File createJPEG () throws IOException {
-        File directory = getApplicationPhotoDirectory();
-        directory.mkdirs();
-        File jpeg = new File(directory, uniqueName());
-        Log.d(TAG, jpeg.getAbsolutePath());
-        Log.d(TAG, directory.getAbsolutePath());
-        jpeg.createNewFile();
-        return jpeg;
+        if (App.getApp().hasFilePermissions()) {
+            File directory = getApplicationPhotoDirectory();
+            directory.mkdirs();
+            File jpeg = new File(directory, uniqueName());
+            Log.d(TAG, jpeg.getAbsolutePath());
+            Log.d(TAG, directory.getAbsolutePath());
+            jpeg.createNewFile();
+            return jpeg;
+        }
+        else App.getApp().requestFilePermissions(context);
+        if (App.getApp().hasFilePermissions())
+            createJPEG();
+        else
+            Toast.makeText(context, "You must allow us to read and write to external storage so we can take your picture!",
+                    Toast.LENGTH_LONG).show();
+        return null;
     }
 
     private String uniqueName () {
@@ -79,7 +91,7 @@ public class Camera {
         return mImageFile.getAbsolutePath();
     }
 
-    private File getApplicationPhotoDirectory() {
+    static File getApplicationPhotoDirectory() {
         File externalDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         return new File (externalDirectory, "App");
     }

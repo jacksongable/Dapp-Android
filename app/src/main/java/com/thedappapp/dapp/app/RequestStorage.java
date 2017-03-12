@@ -66,6 +66,14 @@ public class RequestStorage {
         return incoming.values().iterator();
     }
 
+    public List<Request> getOutgoingAsList () {
+        return new ArrayList<>(outgoing.values());
+    }
+
+    public List<Request> getIncomingAsList () {
+        return new ArrayList<>(incoming.values());
+    }
+
     public void onIncomingRequestAccepted (Request request) {
         incoming.remove(request);
         friends.add(request.getFrom());

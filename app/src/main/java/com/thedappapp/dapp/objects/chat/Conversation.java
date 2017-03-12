@@ -9,7 +9,7 @@ import com.google.firebase.database.Exclude;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.thedappapp.dapp.app.App;
-import com.thedappapp.dapp.app.DatabaseOperationCodes;
+import com.thedappapp.dapp.app.SaveKeys;
 import com.thedappapp.dapp.objects.DappObject;
 import com.thedappapp.dapp.objects.Metadata;
 
@@ -38,8 +38,8 @@ public class Conversation extends DappObject {
 
     @Exclude
     @Override
-    protected void saveInternal(@NonNull DatabaseOperationCodes code) {
-        if (code == DatabaseOperationCodes.DELETE) {
+    protected void saveInternal(@NonNull SaveKeys code) {
+        if (code == SaveKeys.DELETE) {
             FirebaseDatabase.getInstance().getReference("groups").child(meta.getUid()).setValue(null);
         } else {
             DatabaseReference groupReference = FirebaseDatabase.getInstance().getReference("groups");

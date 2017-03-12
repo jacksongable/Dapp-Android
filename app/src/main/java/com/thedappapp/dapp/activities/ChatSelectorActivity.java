@@ -27,6 +27,7 @@ public class ChatSelectorActivity extends DappActivity {
 
     @Override
     protected void onStart() {
+        super.onStart();
         vListSelector = (ListView) findViewById(R.id.chat_selector_list);
         List<Conversation> rooms = App.getApp().getChatStorage().getConversations();
 
@@ -51,5 +52,4 @@ public class ChatSelectorActivity extends DappActivity {
             }
         });
     }
-
 }

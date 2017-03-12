@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -16,16 +17,22 @@
         android:required="true" />
 
     <application
+        android:name=".app.App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label="Dapp"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.CreateGroupActivity" />
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDuQot9FiptEuUEx7ltyP1NjRhRgwEzQhE" />
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
 
-        <service
-            android:name=".services.DatabaseInitService"
-            android:exported="false" />
+        <activity
+            android:name=".activities.CreateGroupActivity"
+            android:label="New Group..." />
 
         <activity
             android:name=".activities.SplashActivity"
@@ -37,13 +44,34 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.MainActivity" />
-        <activity android:name=".activities.MapsActivity" />
-        <activity android:name=".activities.FeedActivity" />
-        <activity android:name=".activities.GroupDetailsActivity" />
+        <activity
+            android:name=".activities.MapsActivity"
+            android:label="Map" />
+        <activity
+            android:name=".activities.FeedActivity"
+            android:label="Feed" />
+        <activity
+            android:name=".activities.GroupDetailsActivity"
+            android:theme="@style/DappDialog" />
         <activity android:name=".activities.ChatSelectorActivity" />
         <activity android:name=".activities.ChatThreadActivity" />
-        <activity android:name=".activities.RequestsActivity" />
+        <activity
+            android:name=".activities.RequestsActivity"
+            android:label="Requests" />
+        <activity android:name=".activities.SignInActivity" />
+        <activity
+            android:name="com.facebook.FacebookActivity"
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+            android:label="@string/app_name" />
 
+        <service android:name=".services.FcmTokenService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
+            </intent-filter>
+        </service>
+        <service
+            android:name=".services.TokenUploadService"
+            android:exported="false"></service>
     </application>
 
 </manifest>

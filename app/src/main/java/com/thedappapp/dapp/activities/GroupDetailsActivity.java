@@ -1,9 +1,12 @@
 package com.thedappapp.dapp.activities;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -15,13 +18,14 @@ import com.bumptech.glide.Glide;
 import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.app.App;
-import com.thedappapp.dapp.app.DatabaseOperationCodes;
+import com.thedappapp.dapp.app.SaveKeys;
 import com.thedappapp.dapp.app.RequestStorage;
 import com.thedappapp.dapp.interfaces.NoToolbar;
 import com.thedappapp.dapp.objects.chat.Conversation;
@@ -30,34 +34,33 @@ import com.thedappapp.dapp.objects.Request;
 
 public class GroupDetailsActivity extends DappActivity implements NoToolbar {
 
+    private static final String TAG = GroupDetailsActivity.class.getSimpleName();
+
+    private Listener listener;
+    private DatabaseReference reference;
     private TextView vGroupName, vLeader, vBio, vInterests;
     private ImageView vGroupPic;
     private Button cancel, dapp;
-    private Group theGroup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_details);
-        theGroup = getIntent().getExtras().getParcelable("group");
-    }
-
-    @Override
-    protected void onStart() {
         vGroupName = (TextView) findViewById(R.id.group_name);
         vLeader = (TextView) findViewById(R.id.group_leader);
         vBio = (TextView) findViewById(R.id.group_bio);
         vGroupPic = (ImageView) findViewById(R.id.group_pic);
-
         cancel = (Button) findViewById(R.id.group_details_cancel);
         dapp = (Button) findViewById(R.id.dapp_up_group);
 
-        if (theGroup.isMine()) {
-            dapp.setVisibility(View.GONE);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            cancel.setLayoutParams(params);
-        }
+        reference = FirebaseDatabase.getInstance().getReference("groups").child(getIntent().getExtras().getString("gid"));
+        listener = new Listener();
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        reference.addValueEventListener(listener);
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -65,51 +68,9 @@ public class GroupDetailsActivity extends DappActivity implements NoToolbar {
             }
         });
 
-        configureDappButton();
-
-        vGroupName.setText(theGroup.getName());
-        vLeader.setText(theGroup.getLeaderId());
-        vBio.setText(theGroup.getBio());
-
-        StorageReference pic = FirebaseStorage.getInstance().getReference(theGroup.getPhotoPath());
-        Glide.with(this).using(new FirebaseImageLoader()).load(pic).into(vGroupPic);
-
-        LinearLayout interestHolder = (LinearLayout) findViewById(R.id.interest_holder);
-
-        if (theGroup.hasInterest("food")) {
-            ImageView view = new ImageView(this);
-            view.setImageResource(R.drawable.profile_food);
-            interestHolder.addView(view);
-        }
-        if (theGroup.hasInterest("entertainment")) {
-            ImageView view = new ImageView(this);
-            view.setImageResource(R.drawable.profile_events);
-            interestHolder.addView(view);
-        }
-        if (theGroup.hasInterest("music")) {
-            ImageView view = new ImageView(this);
-            view.setImageResource(R.drawable.profile_music);
-            interestHolder.addView(view);
-        }
-        if (theGroup.hasInterest("gaming")) {
-            ImageView view = new ImageView(this);
-            view.setImageResource(R.drawable.profile_gaming);
-            interestHolder.addView(view);
-        }
-        if (theGroup.hasInterest("party")) {
-            ImageView view = new ImageView(this);
-            view.setImageResource(R.drawable.profile_party);
-            interestHolder.addView(view);
-        }
-        if (theGroup.hasInterest("sports")) {
-            ImageView view = new ImageView(this);
-            view.setImageResource(R.drawable.profile_sports);
-            interestHolder.addView(view);
-        }
-
     }
 
-    private void configureDappButton () {
+    private void configureDappButton (Group theGroup) {
         RequestStorage storage = App.getApp().getRequestStorage();
 
         if (storage.hasDappedUp(theGroup))
@@ -119,9 +80,9 @@ public class GroupDetailsActivity extends DappActivity implements NoToolbar {
             configureDappButtonForFriends();
 
         else if (storage.isDappedUpBy(theGroup))
-            configureDappButtonForPendingIncomingRequest();
+            configureDappButtonForPendingIncomingRequest(theGroup);
 
-        else configureDappButtonForNoCurrentRelationship();
+        else configureDappButtonForNoCurrentRelationship(theGroup);
     }
 
     private void configureDappButtonForPendingOutgoingRequest() {
@@ -134,22 +95,21 @@ public class GroupDetailsActivity extends DappActivity implements NoToolbar {
         dapp.setEnabled(false);
     }
 
-    private void configureDappButtonForPendingIncomingRequest () {
+    private void configureDappButtonForPendingIncomingRequest (final Group theGroup) {
         dapp.setText("Accept");
         dapp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 final App myApp = App.getApp();
-                myApp.USER_REQUEST_ROOT.child(theGroup.getLeaderId()).addListenerForSingleValueEvent(new ValueEventListener() {
+                myApp.USER_REQUEST.child(theGroup.getLeaderId()).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         String requestId = dataSnapshot.child("id").getValue(String.class);
                         String from = dataSnapshot.child("from").getValue(String.class);
 
                         myApp.getRequestStorage().get(from).accept();
-
                         Conversation conversation = new Conversation(from);
-                        conversation.save(DatabaseOperationCodes.CREATE);
+                        conversation.save(SaveKeys.CREATE);
 
                         configureDappButtonForFriends();
                         Intent intent = new Intent(GroupDetailsActivity.this, ChatThreadActivity.class);
@@ -166,7 +126,7 @@ public class GroupDetailsActivity extends DappActivity implements NoToolbar {
         });
     }
 
-    private void configureDappButtonForNoCurrentRelationship () {
+    private void configureDappButtonForNoCurrentRelationship (final Group theGroup) {
         dapp.setText("Dapp Up!");
         dapp.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -199,5 +159,88 @@ public class GroupDetailsActivity extends DappActivity implements NoToolbar {
                 }
             }
         });
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        reference.removeEventListener(listener);
+    }
+
+    private class Listener implements ValueEventListener {
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            Group group = dataSnapshot.getValue(Group.class);
+            GroupDetailsActivity context = GroupDetailsActivity.this;
+
+            vGroupName.setText(group.getName());
+            vLeader.setText(group.getLeaderName());
+            vBio.setText(group.getBio());
+
+            StorageReference pic = FirebaseStorage.getInstance().getReferenceFromUrl(group.getPhotoPath());
+            Glide.with(context).using(new FirebaseImageLoader()).load(pic).into(vGroupPic);
+
+            LinearLayout interestHolder = (LinearLayout) findViewById(R.id.interest_holder);
+
+            interestHolder.removeAllViews();
+
+            if (group.hasInterest("food")) {
+                interestHolder.addView(getSingleInterestView(context, "Food", R.drawable.profile_food));
+            }
+            if (group.hasInterest("entertainment")) {
+                interestHolder.addView(getSingleInterestView(context, "Events", R.drawable.profile_events));
+            }
+            if (group.hasInterest("music")) {
+                interestHolder.addView(getSingleInterestView(context, "Music", R.drawable.profile_music));
+            }
+            if (group.hasInterest("gaming")) {
+                interestHolder.addView(getSingleInterestView(context, "Gaming", R.drawable.profile_gaming));
+            }
+            if (group.hasInterest("party")) {
+                interestHolder.addView(getSingleInterestView(context, "Party", R.drawable.profile_party));
+            }
+            if (group.hasInterest("sports")) {
+                interestHolder.addView(getSingleInterestView(context, "Sports", R.drawable.profile_sports));
+            }
+
+            if (group.isMine()) {
+                dapp.setVisibility(View.GONE);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                cancel.setLayoutParams(params);
+            }
+
+            configureDappButton(group);
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+            Log.e(TAG, "Cancelled.");
+        }
+
+        private View getSingleInterestView(Context context, String text, int drawable) {
+            LinearLayout layout = new LinearLayout(context);
+            layout.setGravity(Gravity.CENTER);
+            layout.setOrientation(LinearLayout.VERTICAL);
+
+            float density = context.getResources().getDisplayMetrics().density;
+            int margin = (int) (10 * density);
+
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+                    (ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            params.setMargins(margin, margin, margin, margin);
+
+            ImageView image = new ImageView(context);
+            image.setImageResource(drawable);
+
+            TextView textView = new TextView(context);
+            textView.setGravity(Gravity.CENTER);
+            textView.setText(text);
+
+            layout.setLayoutParams(params);
+            layout.addView(image);
+            layout.addView(textView);
+
+            return layout;
+        }
     }
 }

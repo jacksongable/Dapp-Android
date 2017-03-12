@@ -9,7 +9,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.thedappapp.dapp.R;
-import com.thedappapp.dapp.adapters.RecyclerFeedAdapter;
+import com.thedappapp.dapp.adapters.FeedAdapter;
 import com.thedappapp.dapp.objects.group.Group;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +37,7 @@ public class FeedActivity extends DappActivity {
                 LinearLayoutManager manager = new LinearLayoutManager(FeedActivity.this);
                 manager.setOrientation(LinearLayoutManager.VERTICAL);
                 mRecycler.setLayoutManager(manager);
-                mRecycler.setAdapter(new RecyclerFeedAdapter(FeedActivity.this, list));
+                mRecycler.setAdapter(new FeedAdapter(FeedActivity.this, list));
 
             }
 

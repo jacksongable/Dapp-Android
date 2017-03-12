@@ -1,13 +1,17 @@
 package com.thedappapp.dapp.app;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 import android.view.View;
 
+import com.facebook.login.LoginManager;
+import com.google.firebase.auth.FirebaseAuth;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.activities.DappActivity;
 import com.thedappapp.dapp.activities.ChatSelectorActivity;
-import com.thedappapp.dapp.activities.MyGroupActivity;
+import com.thedappapp.dapp.activities.GroupDetailsActivity;
+import com.thedappapp.dapp.activities.MainActivity;
 import com.thedappapp.dapp.activities.RequestsActivity;
 import com.thedappapp.dapp.activities.MapsActivity;
 import com.thedappapp.dapp.activities.FeedActivity;
@@ -19,6 +23,7 @@ import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
+import com.thedappapp.dapp.activities.SignInActivity;
 
 /**
  * Created by jackson on 7/7/16.
@@ -68,12 +73,13 @@ public class DrawerResources {
     }
 
     private static ProfileDrawerItem profile () {
-        return new ProfileDrawerItem().withName(User.me().getUsername());
-        //.withIcon(App.fetchProfileImageIfNecessary()); Deactivated.
+        String str = FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl().toString();
+        return new ProfileDrawerItem().withName(App.getApp().me().getDisplayName())
+                                      .withIcon(str);
     }
 
     public static IDrawerItem getCurrentlyLoadedActivityItem () {
-        if (context instanceof MyGroupActivity) return items[0];
+        if (context instanceof GroupDetailsActivity) return items[0];
         if (context instanceof MapsActivity) return items[1];
         if (context instanceof FeedActivity) return items[2];
         if (context instanceof ChatSelectorActivity) return items[3];
@@ -90,7 +96,7 @@ public class DrawerResources {
             switch (position) {
                 case HOME:
                     Log.d(TAG, "Home item selected.");
-                    newClass = MyGroupActivity.class;
+                    newClass = MainActivity.class;
                     break;
                 case REQUESTS:
                     Log.d(TAG, "Invitations item selected.");
@@ -109,9 +115,11 @@ public class DrawerResources {
                     newClass = ChatSelectorActivity.class;
                     break;
                 case LOG_OUT:
-                    Log.d(TAG, "Chat item selected.");
-                    App.logout(sContext);
-                    return false;
+                    Log.d(TAG, "Logout item selected.");
+                    FirebaseAuth.getInstance().signOut();
+                    LoginManager.getInstance().logOut();
+                    newClass = SignInActivity.class;
+                    break;
                 default:
                     throw new RuntimeException("Illegal option selected.");
             }
