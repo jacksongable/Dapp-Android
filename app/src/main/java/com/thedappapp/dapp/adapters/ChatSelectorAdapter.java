@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 import com.thedappapp.dapp.R;
+import com.thedappapp.dapp.objects.chat.ActiveChatShell;
 import com.thedappapp.dapp.objects.chat.Conversation;
 import java.util.List;
 
@@ -16,9 +17,9 @@ import java.util.List;
 public class ChatSelectorAdapter extends BaseAdapter {
 
     private Context mContext;
-    private List<Conversation> conversations;
+    private List<ActiveChatShell> conversations;
 
-    public ChatSelectorAdapter (Context context, List<Conversation> list) {
+    public ChatSelectorAdapter (Context context, List<ActiveChatShell> list) {
         mContext = context;
         conversations = list;
     }
@@ -49,7 +50,7 @@ public class ChatSelectorAdapter extends BaseAdapter {
             view = inflater.inflate(R.layout.content_chat_label, null);
             //String msg = conversations.get(i).getLastMessage();
             holder = createViewHolder(view);
-            holder.otherUser.setText(conversations.get(i).getOtherUser());
+            holder.otherUser.setText(conversations.get(i).getGroup_name());
             //holder.lastMessage.setText(msg);
         }
 
@@ -63,13 +64,14 @@ public class ChatSelectorAdapter extends BaseAdapter {
         return holder;
     }
 
+    public void add (ActiveChatShell shell) {
+        conversations.add(shell);
+        notifyDataSetChanged();
+    }
+
     private static class ViewHolder {
         public TextView otherUser;
         //public TextView lastMessage;
     }
 
-    public void update (List<Conversation> data) {
-        conversations.addAll(data);
-        this.notifyDataSetChanged();
-    }
 }

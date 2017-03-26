@@ -5,9 +5,11 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -32,70 +34,50 @@ public class FcmReceiverService extends FirebaseMessagingService {
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
         Map<String, String> data = remoteMessage.getData();
-
-        if (data.get("type").equals("message"))
-            doMessage(data.get("conversationId"));
-        else if (data.get("type").equals("invite"))
-            doInvite(data.get("from"));
+        Log.d(TAG, "Message received: " + remoteMessage.getMessageId());
+        if (data.get("type").equals("chat"))
+            doMessage(data);
+        else if (data.get("type").equals("request"))
+            doInvite(data);
 
 
     }
 
-    private void doMessage (String roomId) {
-        App.getApp().CHAT.child(roomId).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Intent intent = new Intent(FcmReceiverService.this, ChatThreadActivity.class);
-                Conversation conversation = dataSnapshot.getValue(Conversation.class);
 
-                intent.putExtra("conversation", conversation);
-                PendingIntent pendingIntent = PendingIntent.getActivity(FcmReceiverService.this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+    private void doMessage (final Map<String, String> message) {
+        Intent intent = new Intent(FcmReceiverService.this, ChatThreadActivity.class);
+        intent.putExtra("key", message.get("conversationKey"));
 
-                NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        PendingIntent pendingIntent = PendingIntent.getActivity(FcmReceiverService.this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(FcmReceiverService.this);
-                builder.setContentTitle("USERNAME HERE");
-                builder.setContentText("MESSAGE HERE");
-                builder.setAutoCancel(true);
-                builder.setContentIntent(pendingIntent);
-                builder.setSmallIcon(R.mipmap.ic_notification);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-                notificationManager.notify(0, builder.build());
-            }
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(FcmReceiverService.this);
+        builder.setContentTitle(message.get("sender_name"));
+        builder.setContentText(message.get("text"));
+        builder.setAutoCancel(true);
+        builder.setContentIntent(pendingIntent);
+        builder.setSmallIcon(R.mipmap.ic_notification);
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+        notificationManager.notify(0, builder.build());
 
-            }
-        });
     }
 
-    private void doInvite (String groupId) {
-        App.getApp().GROUPS.child(groupId).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Intent intent = new Intent(FcmReceiverService.this, GroupDetailsActivity.class);
-                Group group = dataSnapshot.getValue(Group.class);
+    private void doInvite (final Map<String, String> message) {
+        Intent intent = new Intent(FcmReceiverService.this, GroupDetailsActivity.class);
+        intent.putExtra("gid", message.get("gid"));
 
-                intent.putExtra("group", group);
-                PendingIntent pendingIntent = PendingIntent.getActivity(FcmReceiverService.this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(FcmReceiverService.this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
-                NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(FcmReceiverService.this);
-                builder.setContentTitle("New Request");
-                builder.setContentText("blank dapped you up!");
-                builder.setAutoCancel(true);
-                builder.setContentIntent(pendingIntent);
-                builder.setSmallIcon(R.mipmap.ic_notification);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(FcmReceiverService.this);
+        builder.setContentTitle("New Request");
+        builder.setContentText("blank dapped you up!");
+        builder.setAutoCancel(true);
+        builder.setContentIntent(pendingIntent);
+        builder.setSmallIcon(R.mipmap.ic_notification);
 
-                notificationManager.notify(0, builder.build());
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+        notificationManager.notify(0, builder.build());
     }
 }

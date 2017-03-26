@@ -4,9 +4,11 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.facebook.login.LoginManager;
 import com.google.firebase.auth.FirebaseAuth;
+import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.activities.DappActivity;
 import com.thedappapp.dapp.activities.ChatSelectorActivity;
@@ -25,17 +27,20 @@ import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.thedappapp.dapp.activities.SignInActivity;
 
+import java.util.ArrayList;
+
 /**
  * Created by jackson on 7/7/16.
  */
 public class DrawerResources {
 
-    private static final int HOME = 1;
-    private static final int REQUESTS = 2;
-    private static final int MAP = 3;
-    private static final int FEED = 4;
-    private static final int CHAT = 5;
-    private static final int LOG_OUT = 7;
+    private static final int INVITE = 1;
+    private static final int HOME = 3;
+    private static final int REQUESTS = 4;
+    private static final int MAP = 5;
+    private static final int FEED = 6;
+    private static final int CHAT = 7;
+    private static final int LOG_OUT = 9;
 
     private static final IDrawerItem[] items;
     private static final String TAG;
@@ -45,14 +50,16 @@ public class DrawerResources {
     static {
         TAG = DrawerResources.class.getSimpleName();
 
-        items = new IDrawerItem[7];
-        items[0] = new PrimaryDrawerItem().withName("My Group");
-        items[1] = new PrimaryDrawerItem().withName("Requests");
-        items[2] = new PrimaryDrawerItem().withName("Map");
-        items[3] = new PrimaryDrawerItem().withName("Feed");
-        items[4] = new PrimaryDrawerItem().withName("Chat");
-        items[5] = new DividerDrawerItem();
-        items[6] = new PrimaryDrawerItem().withName("Log out");
+        items = new IDrawerItem[9];
+        items[0] = new SecondaryDrawerItem().withName("Invite your friends!");
+        items[1] = new DividerDrawerItem();
+        items[2] = new PrimaryDrawerItem().withName("My Group");
+        items[3] = new PrimaryDrawerItem().withName("Requests");
+        items[4] = new PrimaryDrawerItem().withName("Map");
+        items[5] = new PrimaryDrawerItem().withName("Feed");
+        items[6] = new PrimaryDrawerItem().withName("Chat");
+        items[7] = new DividerDrawerItem();
+        items[8] = new PrimaryDrawerItem().withName("Log out");
     }
 
 
@@ -114,6 +121,10 @@ public class DrawerResources {
                     Log.d(TAG, "Chat item selected.");
                     newClass = ChatSelectorActivity.class;
                     break;
+                case INVITE:
+                    sendTextInvite();
+                    newClass = null;
+                    break;
                 case LOG_OUT:
                     Log.d(TAG, "Logout item selected.");
                     FirebaseAuth.getInstance().signOut();
@@ -124,12 +135,20 @@ public class DrawerResources {
                     throw new RuntimeException("Illegal option selected.");
             }
 
-            if (! context.getClass().equals(newClass)) {
+            if (newClass != null && ! context.getClass().equals(newClass)) {
                 Intent intent = new Intent(context, newClass);
                 context.startActivity(intent);
             }
 
             return false;
+        }
+
+        private void sendTextInvite () {
+            Intent text = new Intent(Intent.ACTION_VIEW);
+            text.setData(Uri.parse("sms:"));
+            text.setType("vnd.android-dir/mms-sms");
+            text.putExtra(Intent.EXTRA_TEXT, "Hey there! Check out and download Dapp!\n\nhttp://thedappapp.com");
+            context.startActivity(text);
         }
     }
 

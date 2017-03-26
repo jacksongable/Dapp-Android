@@ -18,30 +18,36 @@ import com.thedappapp.dapp.objects.Metadata;
  */
 public class Message extends DappObject {
 
-    private String message, sender;
+    private String text, senderId, senderName;
 
     @Exclude
     private transient String convoId;
 
     public Message () {}
 
-    public Message (String message, String sender) {
-        this.message = message;
-        this.sender = sender;
+    public Message (String text, String senderId, String senderName) {
+        this.text = text;
+        this.senderId = senderId;
+        this.senderName = senderName;
         convoId = null;
     }
 
     private Message (Parcel in) {
-        message = in.readString();
-        sender = in.readString();
+        text = in.readString();
+        senderId = in.readString();
+        senderName = in.readString();
     }
 
-    public String getMessage () {
-        return message;
+    public String getText() {
+        return text;
     }
 
-    public String getSender () {
-        return sender;
+    public String getSenderId() {
+        return senderId;
+    }
+
+    public String getSenderName () {
+        return senderName;
     }
 
     public Message intoConversation (String id) {
@@ -61,7 +67,7 @@ public class Message extends DappObject {
             FirebaseDatabase.getInstance().getReference("chat").child(convoId).child("messages").child(super.meta.getUid()).setValue(null);
         }
         else {
-            DatabaseReference msgRef = FirebaseDatabase.getInstance().getReference("chat").child(convoId).child("messages").push();
+            DatabaseReference msgRef = FirebaseDatabase.getInstance().getReference("chats").child(convoId).child("messages").push();
             super.meta = new Metadata(msgRef.getKey(), ServerValue.TIMESTAMP, null);
             msgRef.setValue(this);
         }
@@ -74,8 +80,9 @@ public class Message extends DappObject {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(message);
-        parcel.writeString(sender);
+        parcel.writeString(text);
+        parcel.writeString(senderId);
+        parcel.writeString(senderName);
     }
 
     public static Parcelable.Creator<Message> CREATOR = new Parcelable.Creator<Message>() {

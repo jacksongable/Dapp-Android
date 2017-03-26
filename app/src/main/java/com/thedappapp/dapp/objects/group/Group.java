@@ -2,6 +2,7 @@ package com.thedappapp.dapp.objects.group;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
@@ -144,10 +145,17 @@ public class Group extends DappObject {
     protected void saveInternal(@NonNull SaveKeys code) {
         if (code == SaveKeys.DELETE) {
             FirebaseDatabase.getInstance().getReference("groups").child(meta.getUid()).setValue(null);
-            FirebaseDatabase.getInstance().getReference("user").child(App.getApp().me().getUid()).child("group").setValue(null);
+            FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("group").setValue(null);
             OldGroup old = new OldGroup(this);
             old.save(SaveKeys.CREATE);
-        } else {
+
+            SharedPreferences preferences = App.getApp().getSharedPreferences(App.PREFERENCES, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("gid", null);
+            editor.commit();
+        }
+
+        else {
             DatabaseReference groupReference = FirebaseDatabase.getInstance().getReference("groups").push();
             //GeoFire geoFire = new GeoFire(groupReference);
             switch (code) {
@@ -166,43 +174,16 @@ public class Group extends DappObject {
                 this.photoPath = uploadPhoto(new BufferedInputStream(new FileInputStream(Compressor.compress(photoPath))));;
             } catch (IOException e) {
                 Log.e(TAG, Log.getStackTraceString(e));
-            } finally {
-                App.getApp().setCurrentGroup(this);
             }
-            groupReference.setValue(this);
-        }
-    }
 
-    public void fetchLocationAndSave(Activity context, SaveKeys code) {
-        if (code == SaveKeys.DELETE)
-            save(code);
-        else {
-            android.location.LocationManager manager = (android.location.LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-            LocUpdateListener listener = new LocUpdateListener(manager, code);
+            finally {
+                groupReference.setValue(this);
+                FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("group").setValue(meta.getUid());
 
-            boolean gpsEnabled = manager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER);
-            boolean networkEnabled = manager.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER);
-
-            if (App.getApp().hasLocationPermissions()) {
-                if (!networkEnabled && !gpsEnabled) {
-                    Log.w(TAG, "Location not available. Saving without location.");
-                    save(code);
-                }
-                else if (gpsEnabled) {
-                    manager.requestLocationUpdates(android.location.LocationManager.GPS_PROVIDER, 0L, 0f, listener);
-                }
-                else if (networkEnabled) {
-                    manager.requestLocationUpdates(android.location.LocationManager.NETWORK_PROVIDER, 0L, 0f, listener);
-                }
-            }
-            else {
-                App.getApp().requestLocationPermissions(context);
-                if (App.getApp().hasLocationPermissions())
-                    fetchLocationAndSave(context, code);
-                else {
-                    Log.w(TAG, "Location permission denied by user. Saving without location.");
-                    save(code);
-                }
+                SharedPreferences preferences = App.getApp().getSharedPreferences(App.PREFERENCES, Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putString("gid", meta.getUid());
+                editor.commit();
             }
         }
     }
@@ -214,31 +195,6 @@ public class Group extends DappObject {
                                                     .child(super.meta.getUid());
         reference.putStream(stream);
         return reference.toString();
-    }
-
-    private class LocUpdateListener implements LocationListener {
-        private android.location.LocationManager mManager;
-        private SaveKeys saveCode;
-
-        private LocUpdateListener(android.location.LocationManager theManager, SaveKeys saveCode) {
-            mManager = theManager;
-            this.saveCode = saveCode;
-        }
-
-        @Override
-        public void onLocationChanged(Location location) {
-            mManager.removeUpdates(this);
-            //setLocation(new GeoLocation(location.getLatitude(), location.getLongitude()));
-            Group.this.location.put("latitude", location.getLatitude());
-            Group.this.location.put("longitude", location.getLongitude());
-            save(saveCode);
-        }
-        @Override
-        public void onStatusChanged(String s, int i, Bundle bundle) {}
-        @Override
-        public void onProviderEnabled(String s) {}
-        @Override
-        public void onProviderDisabled(String s) {}
     }
 
     @Exclude

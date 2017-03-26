@@ -17,7 +17,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.disklrucache.DiskLruCache;
 import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -27,7 +26,6 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.thedappapp.dapp.R;
-import com.thedappapp.dapp.activities.DappActivity;
 import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.objects.group.Group;
 
@@ -69,7 +67,7 @@ public class CurrentGroupFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         listener = new Listener();
-        String gid = getActivity().getSharedPreferences(App.USER_DATA, Context.MODE_PRIVATE).getString("gid", "empty");
+        String gid = getActivity().getSharedPreferences(App.PREFERENCES, Context.MODE_PRIVATE).getString("gid", "empty");
         if (gid.equals("empty"))
             throw new RuntimeException("For some reason, this fragment was loaded even though there is no current group.");
         groupReference = FirebaseDatabase.getInstance().getReference("groups").child(gid);

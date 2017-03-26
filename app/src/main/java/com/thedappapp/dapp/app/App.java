@@ -41,7 +41,7 @@ public final class App extends MultiDexApplication {
 
     private static final String TAG = App.class.getSimpleName();
 
-    public static final String USER_DATA = "com.thedappapp.dapp.pref.USER_DATA";
+    public static final String PREFERENCES = "com.thedappapp.dapp.pref.PREFERENCES";
 
     private static App singleton;
 
@@ -98,43 +98,14 @@ public final class App extends MultiDexApplication {
     }
 
 
-
-
-    private volatile Group currentGroup;
-
-    private final Object currentGroupLock = new Object();
-
     public DatabaseReference GROUPS;
     public DatabaseReference USER;
-    public DatabaseReference CHAT;
     public DatabaseReference USER_REQUEST;
 
     private final RequestStorage requestStorage = new RequestStorage();
-    private final ChatStorage chatStorage = new ChatStorage();
-
-
-    public Group getCurrentGroup () {
-        synchronized (currentGroupLock) {
-            return currentGroup;
-        }
-    }
-
-    public void setCurrentGroup (Group g) {
-        synchronized (currentGroupLock) {
-            currentGroup = g;
-            DatabaseReference ref = FirebaseDatabase.getInstance().getReference("user").child(me().getUid()).child("group");
-            if (g == null)
-                ref.setValue(null);
-            else ref.setValue(g.getMeta().getUid());
-        }
-    }
 
     public boolean hasCurrentGroup () {
-        return currentGroup != null;
-    }
-
-    public ChatStorage getChatStorage () {
-        return chatStorage;
+        return getSharedPreferences(PREFERENCES, MODE_PRIVATE).getString("gid", null) != null;
     }
 
     public RequestStorage getRequestStorage () {

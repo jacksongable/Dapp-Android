@@ -4,10 +4,9 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.thedappapp.dapp.interfaces.NoDatabase;
 import com.thedappapp.dapp.interfaces.NoToolbar;
 
-public class SplashActivity extends DappActivity implements NoToolbar, NoDatabase {
+public class SplashActivity extends DappActivity implements NoToolbar {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

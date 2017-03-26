@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
 import com.thedappapp.dapp.app.App;
@@ -22,10 +21,10 @@ public class FcmTokenService extends FirebaseInstanceIdService {
         String refreshedToken = FirebaseInstanceId.getInstance().getToken();
         Log.d(TAG, "Refreshed token: " + refreshedToken);
 
-        SharedPreferences preferences = getSharedPreferences(App.USER_DATA, MODE_PRIVATE);
+        SharedPreferences preferences = getSharedPreferences(App.PREFERENCES, MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putString("device_token", refreshedToken);
-        editor.apply();
+        editor.putString("push_token", refreshedToken);
+        editor.commit();
 
         if (App.getApp().hasUser()) {
             Intent register = new Intent(this, TokenUploadService.class);

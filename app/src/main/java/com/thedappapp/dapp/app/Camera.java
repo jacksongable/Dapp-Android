@@ -60,17 +60,17 @@ public class Camera {
             File directory = getApplicationPhotoDirectory();
             directory.mkdirs();
             File jpeg = new File(directory, uniqueName());
-            Log.d(TAG, jpeg.getAbsolutePath());
-            Log.d(TAG, directory.getAbsolutePath());
             jpeg.createNewFile();
             return jpeg;
         }
-        else App.getApp().requestFilePermissions(context);
-        if (App.getApp().hasFilePermissions())
-            createJPEG();
-        else
-            Toast.makeText(context, "You must allow us to read and write to external storage so we can take your picture!",
-                    Toast.LENGTH_LONG).show();
+        else {
+            App.getApp().requestFilePermissions(context);
+            if (App.getApp().hasFilePermissions())
+                createJPEG();
+            else
+                Toast.makeText(context, "You must allow us to read and write to external storage so we can take your picture!",
+                        Toast.LENGTH_LONG).show();
+        }
         return null;
     }
 
@@ -93,7 +93,7 @@ public class Camera {
 
     static File getApplicationPhotoDirectory() {
         File externalDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        return new File (externalDirectory, "App");
+        return new File (externalDirectory, "Dapp");
     }
 }
 

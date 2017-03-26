@@ -1,7 +1,16 @@
 package com.thedappapp.dapp.activities;
 
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
+import android.util.Log;
 
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.app.App;
@@ -113,7 +122,7 @@ public class CreateGroupActivity extends DappActivity
 
         GroupFactory factory = new GroupFactory();
 
-        Group group = factory.withName(name)
+        final Group group = factory.withName(name)
                 .withBio(bio)
                 .withLeaderId(App.getApp().me().getUid())
                 .withLeaderName(App.getApp().me().getDisplayName())
@@ -121,8 +130,107 @@ public class CreateGroupActivity extends DappActivity
                 .withPic(camera.getCapturedImagePath())
                 .build();
 
-        if (editMode) group.fetchLocationAndSave(this, SaveKeys.UPDATE);
-        else group.fetchLocationAndSave(this, SaveKeys.CREATE);
-        finish();
+        final SaveKeys code;
+        if (editMode) code = SaveKeys.UPDATE;
+        else code = SaveKeys.CREATE;
+
+
+
+
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                        PackageManager.PERMISSION_GRANTED)
+            startLocationUpdates(group, code);
+
+        else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Get featured on our map!");
+            builder.setMessage("We'd like to use your location to feature your group on our map, so other Dapp users know you're nearby. What do you say?");
+            builder.setPositiveButton("Sure thing!", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    ActivityCompat.requestPermissions(CreateGroupActivity.this, new String[] {
+                                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                    android.Manifest.permission.ACCESS_COARSE_LOCATION },
+                            0);
+                    if (ContextCompat.checkSelfPermission(CreateGroupActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+                            PackageManager.PERMISSION_GRANTED &&
+                            ContextCompat.checkSelfPermission(CreateGroupActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                                    PackageManager.PERMISSION_GRANTED)
+                        startLocationUpdates(group, code);
+                }
+            });
+            builder.setNegativeButton("No thanks!", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    Log.d(TAG, "Negative option clicked.");
+                    group.save(code);
+                    finish();
+                }
+            });
+            builder.create().show();
+/*
+            if (App.getApp().hasLocationPermissions())
+                startLocationUpdates(group, code);
+            else {
+                Log.w(TAG, "Location permission denied by user. Saving without location.");
+                group.save(code);
+                finish();
+            } */
+        }
+    }
+
+    private void startLocationUpdates (Group group, SaveKeys code) {
+        android.location.LocationManager manager = (android.location.LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        LocUpdateListener listener = new LocUpdateListener(manager, group, code);
+
+        boolean gpsEnabled = manager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER);
+        boolean networkEnabled = manager.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER);
+
+        if (!networkEnabled && !gpsEnabled) {
+            Log.w(TAG, "Location not available. Saving without location.");
+            group.save(code);
+            finish();
+        }
+        else if (gpsEnabled) {
+            manager.requestLocationUpdates(android.location.LocationManager.GPS_PROVIDER, 0L, 0f, listener);
+        }
+        else if (networkEnabled) {
+            manager.requestLocationUpdates(android.location.LocationManager.NETWORK_PROVIDER, 0L, 0f, listener);
+        }
+    }
+
+    private class LocUpdateListener implements LocationListener {
+        private android.location.LocationManager mManager;
+        private Group g;
+        private SaveKeys saveCode;
+
+        private LocUpdateListener(android.location.LocationManager theManager, Group g, SaveKeys saveCode) {
+            mManager = theManager;
+            this.g = g;
+            this.saveCode = saveCode;
+        }
+
+        @Override
+        public void onLocationChanged(Location location) {
+            if (ContextCompat.checkSelfPermission(CreateGroupActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+                    PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(CreateGroupActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                            PackageManager.PERMISSION_GRANTED) {
+                mManager.removeUpdates(this);
+                //setLocation(new GeoLocation(location.getLatitude(), location.getLongitude()));
+                g.getLocation().put("latitude", location.getLatitude());
+                g.getLocation().put("longitude", location.getLongitude());
+                g.save(saveCode);
+                finish(); //????????????????????????????????????????
+            }
+        }
+        @Override
+        public void onStatusChanged(String s, int i, Bundle bundle) {}
+        @Override
+        public void onProviderEnabled(String s) {}
+        @Override
+        public void onProviderDisabled(String s) {}
     }
 }

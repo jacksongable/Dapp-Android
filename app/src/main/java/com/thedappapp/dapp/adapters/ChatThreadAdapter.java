@@ -10,7 +10,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.objects.chat.Message;
@@ -69,10 +68,10 @@ public class ChatThreadAdapter extends BaseAdapter {
         }
         else holder = (ViewHolder) convertView.getTag();
 
-        boolean isSender = App.getApp().me().getDisplayName().equals(chatMessage.getSender());
+        boolean isSender = App.getApp().me().getUid().equals(chatMessage.getSenderId());
 
         setAlignment(holder, isSender);
-        holder.txtMessage.setText(chatMessage.getMessage());
+        holder.txtMessage.setText(chatMessage.getText());
 
         return convertView;
     }

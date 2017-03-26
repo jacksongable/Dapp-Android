@@ -39,7 +39,7 @@ public class MainActivity extends DappActivity
         mFrame = (FrameLayout) findViewById(R.id.fragment);
         listener = new Listener();
 
-        db = FirebaseDatabase.getInstance().getReference("user")
+        db = FirebaseDatabase.getInstance().getReference("users")
                                           .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                                           .child("group");
     }
@@ -81,7 +81,6 @@ public class MainActivity extends DappActivity
     @Override
     public void onDeleteRequest(Group group) {
         group.save(SaveKeys.DELETE);
-        App.getApp().setCurrentGroup(null);
         onNoCurrentGroup();
     }
 
@@ -97,7 +96,7 @@ public class MainActivity extends DappActivity
             String gid = dataSnapshot.getValue(String.class);
 
             if (gid != null) {
-                SharedPreferences preferences = getSharedPreferences(App.USER_DATA, MODE_PRIVATE);
+                SharedPreferences preferences = getSharedPreferences(App.PREFERENCES, MODE_PRIVATE);
                 SharedPreferences.Editor editor = preferences.edit();
                 editor.putString("gid", gid);
                 editor.apply();

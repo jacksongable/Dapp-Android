@@ -32,14 +32,13 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.thedappapp.dapp.R;
-import com.thedappapp.dapp.interfaces.NoDatabase;
+import com.thedappapp.dapp.interfaces.NoMenu;
 import com.thedappapp.dapp.interfaces.NoToolbar;
 import com.thedappapp.dapp.services.TokenUploadService;
 
-public class SignInActivity extends DappActivity implements NoToolbar, NoDatabase {
+public class SignInActivity extends DappActivity implements NoMenu {
 
     private static final String TAG = SignInActivity.class.getSimpleName();
-
     private static final int GOOGLE_SIGN_IN = 1;
 
     private FirebaseAuth mAuth;
