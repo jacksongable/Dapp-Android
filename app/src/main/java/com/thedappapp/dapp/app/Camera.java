@@ -1,17 +1,12 @@
 package com.thedappapp.dapp.app;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
-
-import com.google.firebase.storage.StorageReference;
-import com.thedappapp.dapp.activities.DappActivity;
-import com.thedappapp.dapp.objects.PhotoReference;
 
 import java.io.File;
 import java.io.IOException;
@@ -63,14 +58,15 @@ public class Camera {
             jpeg.createNewFile();
             return jpeg;
         }
-        else {
+        else Toast.makeText(context, "In ord", Toast.LENGTH_LONG).show();
+        /*else {
             App.getApp().requestFilePermissions(context);
             if (App.getApp().hasFilePermissions())
                 createJPEG();
             else
                 Toast.makeText(context, "You must allow us to read and write to external storage so we can take your picture!",
                         Toast.LENGTH_LONG).show();
-        }
+        } */
         return null;
     }
 

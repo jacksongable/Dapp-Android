@@ -6,7 +6,9 @@ import android.support.annotation.NonNull;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,9 +33,11 @@ import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.synnapps.carouselview.CarouselView;
+import com.synnapps.carouselview.ViewListener;
 import com.thedappapp.dapp.R;
+import com.thedappapp.dapp.adapters.FeedAdapter;
 import com.thedappapp.dapp.interfaces.NoMenu;
-import com.thedappapp.dapp.interfaces.NoToolbar;
 import com.thedappapp.dapp.services.TokenUploadService;
 
 public class SignInActivity extends DappActivity implements NoMenu {
@@ -47,11 +51,34 @@ public class SignInActivity extends DappActivity implements NoMenu {
     private SignInButton googleButton;
     private CallbackManager callbackManager;
     private GoogleApiClient mGoogleApiClient;
+    private CarouselView carousel;
+    private ProgressBar loading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signin);
+
+        facebookButton = (LoginButton) findViewById(R.id.login_button);
+        googleButton = (SignInButton) findViewById(R.id.google_button);
+        loading = (ProgressBar) findViewById(R.id.progressBar);
+
+        carousel = (CarouselView) findViewById(R.id.carouselView);
+        carousel.setPageCount(4);
+
+        final String[] carouselText = {"Create a group with your friends", "State your interests - tell us " +
+                "what you and your friends feel like doing.", "View and \"Dapp Up\" cool groups with " +
+                "whome you share similar interests.", "If another group Dapps you back, you are all" +
+                " sent to chat so you can make plans to hang out!"};
+
+        carousel.setViewListener(new ViewListener() {
+            @Override
+            public View setViewForPosition(int position) {
+                View view = LayoutInflater.from(SignInActivity.this).inflate(R.layout.content_carousel_view, null);
+                ((TextView) view.findViewById(R.id.text)).setText(carouselText[position]);
+                return view;
+            }
+        });
 
         mAuth = FirebaseAuth.getInstance();
         listener = new AuthListener();
@@ -64,6 +91,13 @@ public class SignInActivity extends DappActivity implements NoMenu {
         disclaimerText.append(" and ");
         disclaimerText.append("<a href=\"http://www.thedappapp.com/privacy-policy\">Privacy Policy</a>.");
         disclaimer.setText(Html.fromHtml(disclaimerText.toString()));
+    }
+
+    private void doLoginLoadView (boolean isLoading) {
+        loading.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+        googleButton.setVisibility(isLoading ? View.GONE : View.VISIBLE);
+        facebookButton.setVisibility(isLoading ? View.GONE : View.VISIBLE);
+        carousel.setVisibility(isLoading ? View.GONE : View.VISIBLE);
     }
 
     @Override
@@ -96,8 +130,6 @@ public class SignInActivity extends DappActivity implements NoMenu {
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
 
-
-        googleButton = (SignInButton) findViewById(R.id.google_button);
         googleButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -108,7 +140,6 @@ public class SignInActivity extends DappActivity implements NoMenu {
     }
 
     private void setupFacebookAuth() {
-        facebookButton = (LoginButton) findViewById(R.id.login_button);
         facebookButton.setReadPermissions("email", "public_profile");
 
         callbackManager = CallbackManager.Factory.create();
@@ -148,7 +179,7 @@ public class SignInActivity extends DappActivity implements NoMenu {
 
     private void handleFacebookSignin(AccessToken token) {
         Log.d(TAG, "handleFacebookSignin:" + token);
-
+        doLoginLoadView(true);
         AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
         mAuth.signInWithCredential(credential)
                  .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -171,6 +202,7 @@ public class SignInActivity extends DappActivity implements NoMenu {
     }
 
     private void handleGoogleSignin(GoogleSignInResult result) {
+        doLoginLoadView(true);
         GoogleSignInAccount acct = result.getSignInAccount();
         Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
 
@@ -213,12 +245,13 @@ public class SignInActivity extends DappActivity implements NoMenu {
                 uploadToken.setAction(TokenUploadService.REGISTER_TOKEN);
                 startService(uploadToken);
 
-                Intent main = new Intent(SignInActivity.this, MainActivity.class);
+                Intent main = new Intent(SignInActivity.this, MainFeedActivity.class);
                 startActivity(main);
 
                 SignInActivity.this.finish();
             } else {
                 Log.d(TAG, "onAuthStateChanged:signed_out");
+                doLoginLoadView(false);
             }
         }
 

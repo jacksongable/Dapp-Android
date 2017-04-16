@@ -15,8 +15,9 @@ public class SplashActivity extends DappActivity implements NoToolbar {
         Intent main;
         if (FirebaseAuth.getInstance().getCurrentUser() == null)
             main = new Intent(this, SignInActivity.class);
-        else main = new Intent(this, MainActivity.class);
+        else main = new Intent(this, MainFeedActivity.class);
 
         startActivity(main);
+        finish();
     }
 }

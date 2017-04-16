@@ -18,7 +18,7 @@ import com.thedappapp.dapp.objects.Metadata;
  */
 public class Message extends DappObject {
 
-    private String text, senderId, senderName;
+    private String text, sender_id, sender_name;
 
     @Exclude
     private transient String convoId;
@@ -27,27 +27,27 @@ public class Message extends DappObject {
 
     public Message (String text, String senderId, String senderName) {
         this.text = text;
-        this.senderId = senderId;
-        this.senderName = senderName;
+        this.sender_id = senderId;
+        this.sender_name = senderName;
         convoId = null;
     }
 
     private Message (Parcel in) {
         text = in.readString();
-        senderId = in.readString();
-        senderName = in.readString();
+        sender_id = in.readString();
+        sender_name = in.readString();
     }
 
     public String getText() {
         return text;
     }
 
-    public String getSenderId() {
-        return senderId;
+    public String getSender_id() {
+        return sender_id;
     }
 
-    public String getSenderName () {
-        return senderName;
+    public String getSender_name() {
+        return sender_name;
     }
 
     public Message intoConversation (String id) {
@@ -81,8 +81,8 @@ public class Message extends DappObject {
     @Override
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeString(text);
-        parcel.writeString(senderId);
-        parcel.writeString(senderName);
+        parcel.writeString(sender_id);
+        parcel.writeString(sender_name);
     }
 
     public static Parcelable.Creator<Message> CREATOR = new Parcelable.Creator<Message>() {

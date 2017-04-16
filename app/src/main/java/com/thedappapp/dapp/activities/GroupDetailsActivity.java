@@ -26,13 +26,12 @@ import com.google.firebase.storage.StorageReference;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.app.SaveKeys;
-import com.thedappapp.dapp.app.RequestStorage;
 import com.thedappapp.dapp.interfaces.NoToolbar;
 import com.thedappapp.dapp.objects.chat.Conversation;
 import com.thedappapp.dapp.objects.group.Group;
 import com.thedappapp.dapp.objects.Request;
 
-public class GroupDetailsActivity extends DappActivity implements NoToolbar {
+public class GroupDetailsActivity extends DappActivity implements NoToolbar { /*
 
     private static final String TAG = GroupDetailsActivity.class.getSimpleName();
 
@@ -177,7 +176,7 @@ public class GroupDetailsActivity extends DappActivity implements NoToolbar {
             vLeader.setText(group.getLeaderName());
             vBio.setText(group.getBio());
 
-            StorageReference pic = FirebaseStorage.getInstance().getReferenceFromUrl(group.getPhotoPath());
+            StorageReference pic = FirebaseStorage.getInstance().getReferenceFromUrl(group.getPhoto());
             Glide.with(context).using(new FirebaseImageLoader()).load(pic).into(vGroupPic);
 
             LinearLayout interestHolder = (LinearLayout) findViewById(R.id.interest_holder);
@@ -242,5 +241,5 @@ public class GroupDetailsActivity extends DappActivity implements NoToolbar {
 
             return layout;
         }
-    }
+    }*/
 }

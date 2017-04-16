@@ -68,7 +68,6 @@ public class ChatThreadActivity extends DappActivity {
                                               App.getApp().me().getDisplayName());
 
                 messageET.setText("");
-                displayMessage(message);
                 sendMessage(message);
             }
         });

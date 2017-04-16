@@ -51,7 +51,7 @@ public class InvitationRecyclerAdapter extends RecyclerView.Adapter<InvitationRe
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
-        String fromUser = mDataset.get(position).getFrom();
+        String fromUser = mDataset.get(position).getFrom_id();
         App.getApp().USER.child(fromUser).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -60,7 +60,7 @@ public class InvitationRecyclerAdapter extends RecyclerView.Adapter<InvitationRe
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Group group = dataSnapshot.getValue(Group.class);
-                        StorageReference pic = FirebaseStorage.getInstance().getReference(group.getPhotoPath());
+                        StorageReference pic = FirebaseStorage.getInstance().getReference(group.getPhoto());
                         Glide.with(mContext).using(new FirebaseImageLoader()).load(pic).into(holder.pic);
 
                         holder.name.setText(group.getName());

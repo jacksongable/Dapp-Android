@@ -9,9 +9,9 @@ import android.widget.TextView;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.adapters.InvitationRecyclerAdapter;
 import com.thedappapp.dapp.app.App;
-import com.thedappapp.dapp.app.RequestStorage;
 import com.thedappapp.dapp.objects.Request;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class RequestsActivity extends DappActivity {
@@ -23,9 +23,9 @@ public class RequestsActivity extends DappActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recycler);
-        List<Request> invites = App.getApp().getRequestStorage().getIncomingAsList();
+        List<Request> invites = new ArrayList<>();//App.getApp().getRequestStorage().getIncomingAsList();
         TextView noContent = (TextView) findViewById(R.id.no_content_message);
-        noContent.setText("You have no requests yet! :(");
+        noContent.setText("You have no new requests, so take charge! Start requesting people to chat!");
 
         mRecycler = (RecyclerView) findViewById(R.id.recyclerview);
 
@@ -57,8 +57,8 @@ public class RequestsActivity extends DappActivity {
             List<Request> accepted = ((InvitationRecyclerAdapter) mRecycler.getAdapter()).getAcceptedInvites();
 
             if (!accepted.isEmpty())
-                for (Request r : accepted)
-                    App.getApp().getRequestStorage().onOutgoingInviteAccepted(r);
+                for (Request r : accepted);
+                    //App.getApp().getRequestStorage().onOutgoingInviteAccepted(r);
         }
 
 

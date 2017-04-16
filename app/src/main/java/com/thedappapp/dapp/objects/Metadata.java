@@ -16,7 +16,7 @@ public class Metadata implements Parcelable {
 
     private String uid;
     private Object created, updated;
-    private Map<String, Object> miscData;
+    private Map<String, Object> misc_data;
 
     public Metadata () {}
 
@@ -24,7 +24,7 @@ public class Metadata implements Parcelable {
         this.uid = uid;
         this.created = created;
         this.updated = updated;
-        miscData = new HashMap<>();
+        misc_data = new HashMap<>();
     }
 
     private Metadata(Parcel in) {
@@ -68,15 +68,15 @@ public class Metadata implements Parcelable {
     }
 
     public void addMiscellaneousData (String key, Object value) {
-        miscData.put(key, value);
+        misc_data.put(key, value);
     }
 
     public Object getMiscellaneousAttribute (String key) {
-        return miscData.get(key);
+        return misc_data.get(key);
     }
 
-    public Map<String, Object> getAllMiscellaneousData () {
-        return miscData;
+    public Map<String, Object> getMisc_data() {
+        return misc_data;
     }
 
 

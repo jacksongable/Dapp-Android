@@ -1,11 +1,5 @@
 package com.thedappapp.dapp.objects.group;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.location.Location;
-import android.location.LocationListener;
-import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
@@ -41,9 +35,10 @@ public class Group extends DappObject {
     @Exclude
     private static final String TAG = Group.class.getSimpleName();
 
-    private String name, bio, leaderId, leaderName, photoPath;
+    private String name, bio, leaderId, leaderName, photo;
     private Map<String, Boolean> interests;
     private Map<String, Double> location;
+    private boolean onMap;
 
     public Group () {}
 
@@ -53,8 +48,9 @@ public class Group extends DappObject {
         this.leaderId = leaderId;
         this.leaderName = leaderName;
         this.interests = interests;
-        this.photoPath = picPath;
+        this.photo = picPath;
         location = new HashMap<>();
+        onMap = false;
     }
 
     private Group(Parcel in) {
@@ -112,8 +108,8 @@ public class Group extends DappObject {
         return location;
     }
 
-    public String getPhotoPath () {
-        return photoPath;
+    public String getPhoto() {
+        return photo;
     }
 
     @Exclude
@@ -136,8 +132,22 @@ public class Group extends DappObject {
     }
 
     @Exclude
+    public boolean hasLocation () {
+        if (location != null) return !location.isEmpty();;
+        return false;
+    }
+
+    @Exclude
     public boolean isMine () {
         return leaderId.equals(App.getApp().me().getUid());
+    }
+
+    public void setLocationEnabled (boolean enabled) {
+        onMap = enabled;
+    }
+
+    public boolean onMap () {
+        return onMap;
     }
 
     @Exclude
@@ -148,16 +158,11 @@ public class Group extends DappObject {
             FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("group").setValue(null);
             OldGroup old = new OldGroup(this);
             old.save(SaveKeys.CREATE);
-
-            SharedPreferences preferences = App.getApp().getSharedPreferences(App.PREFERENCES, Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("gid", null);
-            editor.commit();
+            App.getApp().setHasCurrentGroup(false);
         }
 
         else {
             DatabaseReference groupReference = FirebaseDatabase.getInstance().getReference("groups").push();
-            //GeoFire geoFire = new GeoFire(groupReference);
             switch (code) {
                 case CREATE:
                     super.meta = new Metadata(groupReference.getKey(), ServerValue.TIMESTAMP, ServerValue.TIMESTAMP);
@@ -167,23 +172,16 @@ public class Group extends DappObject {
                     break;
             }
 
-            /* if (location != null)
-                geoFire.setLocation("geo", location); */
-
             try {
-                this.photoPath = uploadPhoto(new BufferedInputStream(new FileInputStream(Compressor.compress(photoPath))));;
+                this.photo = uploadPhoto(new BufferedInputStream(new FileInputStream(Compressor.compress(photo))));;
             } catch (IOException e) {
                 Log.e(TAG, Log.getStackTraceString(e));
             }
 
             finally {
                 groupReference.setValue(this);
+                App.getApp().setHasCurrentGroup(true);
                 FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("group").setValue(meta.getUid());
-
-                SharedPreferences preferences = App.getApp().getSharedPreferences(App.PREFERENCES, Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putString("gid", meta.getUid());
-                editor.commit();
             }
         }
     }

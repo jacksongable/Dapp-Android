@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,12 +13,18 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.firebase.ui.storage.images.FirebaseImageLoader;
+import com.google.firebase.storage.FirebaseStorage;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.app.Camera;
 import com.thedappapp.dapp.objects.group.Group;
 
+import java.io.File;
+
 public class CreateGroupPage1Fragment extends Fragment {
 
+    private static final String TAG = CreateGroupPage1Fragment.class.getSimpleName();
 
     public CreateGroupPage1Fragment() {
         // Required empty public constructor
@@ -64,8 +71,10 @@ public class CreateGroupPage1Fragment extends Fragment {
         return inflater.inflate(R.layout.fragment_create_group_page1, container, false);
     }
 
-    public void onPictureTaken () {
+    public void onPictureTaken (File pic) {
         hasTakenPicture = true;
+        Log.d(TAG, "Loading picture: ".concat(pic.getAbsolutePath()));
+        Glide.with(this).load(pic).into(vCaptureImage);
     }
 
     @Override

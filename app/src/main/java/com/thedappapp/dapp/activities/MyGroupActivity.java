@@ -1,7 +1,6 @@
 package com.thedappapp.dapp.activities;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.FrameLayout;
@@ -25,7 +24,7 @@ import com.thedappapp.dapp.objects.group.Group;
  * @author Jackson Gable
  * @version Alpha
  */
-public class MainActivity extends DappActivity
+public class MyGroupActivity extends DappActivity
         implements NoCurrentGroupFragment.Callback, CurrentGroupFragment.Callback {
 
     private FrameLayout mFrame;
@@ -42,6 +41,7 @@ public class MainActivity extends DappActivity
         db = FirebaseDatabase.getInstance().getReference("users")
                                           .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                                           .child("group");
+
     }
 
     @Override
@@ -62,8 +62,8 @@ public class MainActivity extends DappActivity
         resetFrameLayout();
     }
 
-    public void onHasCurrentGroup() {
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment, CurrentGroupFragment.newInstance()).commitAllowingStateLoss();
+    public void onHasCurrentGroup(String gid) {
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment, CurrentGroupFragment.newInstance(gid)).commitAllowingStateLoss();
     }
 
     public void onNoCurrentGroup() {
@@ -95,20 +95,13 @@ public class MainActivity extends DappActivity
         public void onDataChange(DataSnapshot dataSnapshot) {
             String gid = dataSnapshot.getValue(String.class);
 
-            if (gid != null) {
-                SharedPreferences preferences = getSharedPreferences(App.PREFERENCES, MODE_PRIVATE);
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putString("gid", gid);
-                editor.apply();
-
-                onHasCurrentGroup();
-            }
+            if (gid != null) onHasCurrentGroup(gid);
             else onNoCurrentGroup();
         }
 
         @Override
         public void onCancelled(DatabaseError databaseError) {
-            Log.d(MainActivity.class.getSimpleName(), "Cancelled.");
+            Log.d(MyGroupActivity.class.getSimpleName(), "Cancelled.");
         }
     }
 }

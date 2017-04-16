@@ -17,9 +17,12 @@ import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.objects.group.Group;
 import com.thedappapp.dapp.objects.Request;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.UserHandle;
 import android.support.multidex.MultiDexApplication;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -102,40 +105,18 @@ public final class App extends MultiDexApplication {
     public DatabaseReference USER;
     public DatabaseReference USER_REQUEST;
 
-    private final RequestStorage requestStorage = new RequestStorage();
+    public void setHasCurrentGroup (boolean has) {
+        SharedPreferences pref = App.getApp().getSharedPreferences(App.PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putBoolean("hasGroup", has);
+        editor.commit();
+    }
 
     public boolean hasCurrentGroup () {
-        return getSharedPreferences(PREFERENCES, MODE_PRIVATE).getString("gid", null) != null;
+        return getSharedPreferences(PREFERENCES, MODE_PRIVATE).getBoolean("hasGroup", false);
     }
 
-    public RequestStorage getRequestStorage () {
-        return requestStorage;
-    }
-
-    public void sendRequest (Request request) {
-        Map<String, Object> val;
-        DatabaseReference outgoing = FirebaseDatabase.getInstance()
-                                                     .getReference("requests")
-                                                     .child(me().getUid())
-                                                     .child("outgoing-pending")
-                                                     .push();
-        val = new HashMap<>();
-        val.put("to", request.getTo());
-        val.put("id", request.getMeta().getUid());
-        outgoing.setValue(val);
-
-        DatabaseReference incoming = FirebaseDatabase.getInstance()
-                                                     .getReference("requests")
-                                                     .child(request.getTo())
-                                                     .child("incoming-pending")
-                                                     .push();
-        val = new HashMap<>();
-        val.put("from", request.getFrom());
-        val.put("id", request.getMeta().getUid());
-        incoming.setValue(val);
-    }
-
-    public void requestLocationPermissions (final Activity context) {
+    public static void requestLocationPermissions (final Activity context) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Get featured on our map!");
         builder.setMessage("We'd like to use your location to feature your group on our map, so other Dapp users know you're nearby. What do you say?");
@@ -157,44 +138,31 @@ public final class App extends MultiDexApplication {
         builder.create().show();
     }
 
-    public boolean hasLocationPermissions () {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
-                PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
-                        PackageManager.PERMISSION_GRANTED)
-            return true;
-        else return false;
-    }
-
-    public void requestFilePermissions (final Activity context) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("We need permission to take your selfie.");
-        builder.setMessage("In order to take a selfie of your group, we need file access permission, so that we can save your photo.");
-        builder.setPositiveButton("You got it!", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                ActivityCompat.requestPermissions(context, new String [] {
-                        Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE
-                }, 1);
-            }
-        });
-        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                Log.d(TAG, "Negative option clicked.");
-            }
-        });
-        builder.create().show();
-    }
-
-    public boolean hasFilePermissions () {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) ==
-                PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
+    public static boolean hasLocationPermissions () {
+        return
+                (ContextCompat.checkSelfPermission(singleton, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                        ==
                 PackageManager.PERMISSION_GRANTED)
-            return true;
-        else return false;
+
+                        &&
+
+                (ContextCompat.checkSelfPermission(singleton, android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                        ==
+                PackageManager.PERMISSION_GRANTED);
+    }
+
+    public static boolean hasFilePermissions () {
+        return
+                (ContextCompat.checkSelfPermission(singleton, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    ==
+                PackageManager.PERMISSION_GRANTED)
+
+                        &&
+
+                (ContextCompat.checkSelfPermission(singleton, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        ==
+                PackageManager.PERMISSION_GRANTED);
+
     }
 }
 
