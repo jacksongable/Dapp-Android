@@ -2,12 +2,19 @@ package com.thedappapp.dapp.activities;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
+import com.google.android.gms.maps.model.Marker;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.objects.group.Group;
@@ -19,7 +26,9 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.thedappapp.dapp.objects.group.MapsDataWrapper;
 
+import java.security.Permissions;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,12 +37,17 @@ public class MapsActivity extends DappActivity implements OnMapReadyCallback {
     private static final String TAG = MapsActivity.class.getSimpleName();
 
     private GoogleMap mMap;
+    private MapInfoWindowAdapter adapter;
+    private MapsListener listener;
+    private Map<String, Marker> markerMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        markerMap = new HashMap<>();
+        listener = new MapsListener();
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -45,25 +59,21 @@ public class MapsActivity extends DappActivity implements OnMapReadyCallback {
 
         if (App.getApp().hasLocationPermissions())
             mMap.setMyLocationEnabled(true);
-        else App.getApp().requestLocationPermissions(this);
+        else App.requestLocationPermissions(this);
 
-        addGroupMarkers();
+        FirebaseDatabase.getInstance().getReference("groups").addChildEventListener(listener);
+        adapter = new MapInfoWindowAdapter(this, new HashMap<String, Group>());
+
+        mMap.setInfoWindowAdapter(adapter);
+        mMap.setOnInfoWindowClickListener(adapter);
 
         final LatLng MANHATTAN = new LatLng(40.782832, -73.965387);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(MANHATTAN, 12));
     }
 
-    public void addGroupMarkers() {
-        final Map<String, Group> hashMap = new HashMap<>();
-/*
-        GeoFire fire = new GeoFire(App.getApp().GROUPS);
-        GeoQuery query = fire.queryAtLocation(App.getApp().getCurrentGroup().getLocation(), 100);
-        GeoQueryListener listener = new GeoQueryListener();
-        query.addGeoQueryEventListener(listener); */
-
-        MapInfoWindowAdapter adapter = new MapInfoWindowAdapter(MapsActivity.this, hashMap);
-        mMap.setInfoWindowAdapter(adapter);
-        mMap.setOnInfoWindowClickListener(adapter);
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     private MarkerOptions getMarkerOptions (LatLng location, boolean isMine) {
@@ -75,43 +85,58 @@ public class MapsActivity extends DappActivity implements OnMapReadyCallback {
         return new MarkerOptions().position(location).icon(BitmapDescriptorFactory.defaultMarker(hsv[0]));
     }
 
-    private class GeoQueryListener implements GeoQueryEventListener {
+    private class MapsListener implements ChildEventListener {
         @Override
-        public void onKeyEntered(String key, GeoLocation location) {
-            /*Group group = iterator.next();
-            GeoLocation point = group.getLocation();
-            LatLng location = locationManager.withParseGeoPoint(point).asLatLng();
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            /*MapsDataWrapper wrapper = dataSnapshot.getValue(MapsDataWrapper.class);
 
-            Marker marker = mMap.addMarker(getMarkerOptions(location, group.isMine()));
+            LatLng location = new LatLng(wrapper.getLatitude(), wrapper.getLongitude());
+            Marker marker = mMap.addMarker(getMarkerOptions(location, wrapper.getOwnerId().equals(App.getApp().me().getUid())));
+            markerMap.put(wrapper.getKey(), marker);
+            adapter.put(marker.getId(), wrapper); */
 
-            hashMap.put(marker.getId(), group); */
+            Group group = dataSnapshot.getValue(Group.class);
+            if (group.hasLocation()) {
+                LatLng location = new LatLng(group.getLocation().get("latitude"), group.getLocation().get("longitude"));
+                Marker marker = mMap.addMarker(getMarkerOptions(location, group.getLeaderId().equals(App.getApp().me().getUid())));
+                markerMap.put(group.getMeta().getUid(), marker);
+                adapter.put(marker.getId(), group);
+            } else {
+                Log.w(TAG, "No location data. Skipping...");
+                return;
+            }
         }
 
         @Override
-        public void onKeyExited(String key) {
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
         }
 
         @Override
-        public void onKeyMoved(String key, GeoLocation location) {
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+            MapsDataWrapper wrapper = dataSnapshot.getValue(MapsDataWrapper.class);
+            Marker marker = markerMap.get(wrapper.getKey());
+            adapter.remove(marker.getId());
+            marker.remove();
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
 
         }
 
         @Override
-        public void onGeoQueryReady() {
-
-        }
-
-        @Override
-        public void onGeoQueryError(DatabaseError error) {
-
+        public void onCancelled(DatabaseError databaseError) {
+            Log.w(TAG, "Cancelled.");
         }
     }
 
     @Override
     public void onStop () {
         super.onStop();
-
+        FirebaseDatabase.getInstance().getReference("map").removeEventListener(listener);
     }
+
+
 
 }

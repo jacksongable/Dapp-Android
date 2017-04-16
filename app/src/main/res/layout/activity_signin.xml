@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:background="@color/dapp_orange">
 
@@ -9,8 +9,68 @@
         android:id="@+id/imageView"
         android:src="@drawable/dapp_logo"
         android:layout_gravity="top"
+        android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         android:layout_height="200dp" />
+<!--
+    <TextView
+        android:text="Find your fun."
+        android:textSize="18sp"
+        android:textColor="@color/white"
+        android:shadowColor="@color/md_black_1000"
+        android:shadowDx="0"
+        android:shadowDy="0"
+        android:shadowRadius="10"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_below="@id/imageView"
+        android:id="@+id/textView2"
+        android:gravity="center_horizontal" />
+        -->
+
+    <ProgressBar
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBar"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/white"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
+
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/google_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/disclaimer"
+        android:layout_alignStart="@+id/login_button"
+        android:layout_marginBottom="16dp"
+        android:layout_alignEnd="@+id/login_button" />
+
+
+
+    <com.facebook.login.widget.LoginButton
+        android:id="@+id/login_button"
+        android:layout_width="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/google_button"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="55dp" />
+
+    <com.synnapps.carouselview.CarouselView
+        android:id="@+id/carouselView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/imageView"
+        android:layout_above="@id/login_button"
+        app:radius="6dp"
+        app:slideInterval="2500"
+        app:strokeColor="@color/white"
+        app:strokeWidth="1dp"
+        app:indicatorGravity="center_horizontal|bottom"
+        app:pageColor="@color/primary"
+        app:fillColor="@color/white" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -23,23 +83,6 @@
         android:layout_alignParentBottom="true"
         android:clickable="true"
         android:layout_gravity="center_horizontal" />
-
-    <com.google.android.gms.common.SignInButton
-        android:id="@+id/google_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_above="@id/disclaimer"
-        android:layout_alignStart="@+id/login_button"
-        android:layout_alignEnd="@+id/login_button" />
-
-    <com.facebook.login.widget.LoginButton
-        android:id="@+id/login_button"
-        android:layout_width="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_centerHorizontal="true"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/google_button"/>
 
 
 </RelativeLayout>

@@ -36,8 +36,12 @@ public class CurrentGroupFragment extends Fragment {
 
     private static final String TAG = CurrentGroupFragment.class.getSimpleName();
 
-    public static CurrentGroupFragment newInstance () {
-        return new CurrentGroupFragment();
+    public static CurrentGroupFragment newInstance (String gid) {
+        CurrentGroupFragment frag = new CurrentGroupFragment();
+        Bundle args = new Bundle();
+        args.putString("gid", gid);
+        frag.setArguments(args);
+        return frag;
     }
 
     public interface Callback {
@@ -55,6 +59,7 @@ public class CurrentGroupFragment extends Fragment {
     private Callback callback;
     private DatabaseReference groupReference;
     private Listener listener;
+    private String gid;
 
     @Override
     public void onAttach(Context context) {
@@ -67,9 +72,7 @@ public class CurrentGroupFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         listener = new Listener();
-        String gid = getActivity().getSharedPreferences(App.PREFERENCES, Context.MODE_PRIVATE).getString("gid", "empty");
-        if (gid.equals("empty"))
-            throw new RuntimeException("For some reason, this fragment was loaded even though there is no current group.");
+        gid = getArguments().getString("gid");
         groupReference = FirebaseDatabase.getInstance().getReference("groups").child(gid);
 
         return inflater.inflate(R.layout.fragment_current_group, container, false);
@@ -151,7 +154,7 @@ public class CurrentGroupFragment extends Fragment {
             if (theGroup.hasInterest("sports"))
                 showInterest("Sports", R.drawable.profile_sports);
 
-            StorageReference pic = FirebaseStorage.getInstance().getReferenceFromUrl(theGroup.getPhotoPath());
+            StorageReference pic = FirebaseStorage.getInstance().getReferenceFromUrl(theGroup.getPhoto());
             Glide.with(CurrentGroupFragment.this).using(new FirebaseImageLoader()).load(pic).into(vGroupPic);
 
             delete.setOnClickListener(new View.OnClickListener() {

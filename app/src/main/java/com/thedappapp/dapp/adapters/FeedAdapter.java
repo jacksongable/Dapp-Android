@@ -1,0 +1,310 @@
+package com.thedappapp.dapp.adapters;
+
+import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.OvershootInterpolator;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
+import com.firebase.ui.storage.images.FirebaseImageLoader;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.thedappapp.dapp.R;
+import com.thedappapp.dapp.activities.DappActivity;
+import com.thedappapp.dapp.app.App;
+import com.thedappapp.dapp.app.SaveKeys;
+import com.thedappapp.dapp.objects.Request;
+import com.thedappapp.dapp.objects.group.Group;
+
+import net.cachapa.expandablelayout.ExpandableLayout;
+
+import java.util.List;
+
+/**
+ * Created by jackson on 8/20/16.
+ */
+public class FeedAdapter extends RecyclerView.Adapter<com.thedappapp.dapp.adapters.FeedAdapter.ViewHolder> {
+        private static final int UNSELECTED = -1;
+
+        private int selectedItem = UNSELECTED;
+
+        private static final String TAG = FeedAdapter.class.getSimpleName();
+
+        private DappActivity mContext;
+        private RecyclerView recycler;
+        private List<Group> mDataset;
+
+        public FeedAdapter(DappActivity context, RecyclerView recycler, List<Group> dataset) {
+            mContext = context;
+            this.recycler = recycler;
+            mDataset = dataset;
+        }
+
+        @Override
+        public int getItemCount() {
+            if (mDataset == null) return 0;
+            else return mDataset.size();
+        }
+
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View itemView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.content_feed_card, parent, false);
+            return new ViewHolder(itemView, parent);
+        }
+
+        @Override
+        public void onBindViewHolder(ViewHolder holder, int position) {
+            final Group currentGroup = mDataset.get(position);
+
+            //THIS IF STATEMENT SHOULD ONLY EXIST WHILE STUART FIXES HIS APP TO REQUIRE PHOTOPATHS. AFTER THAT,
+            //NIX IT.
+            if (currentGroup.getPhoto() != null) {
+                StorageReference ref = FirebaseStorage.getInstance().getReferenceFromUrl(currentGroup.getPhoto());
+                Glide.with(mContext).using(new FirebaseImageLoader()).load(ref).into(holder.pic);
+            }
+
+            //configureDappButton(holder, currentGroup);
+
+            holder.name.setText(currentGroup.getName());
+            holder.bio.setText(currentGroup.getBio());
+            holder.leader.setText("Led by ".concat(currentGroup.getLeaderName()));
+            holder.bind(position);
+        }
+
+        public void add (Group group) {
+            mDataset.add(group);
+            notifyDataSetChanged();
+        }
+
+        public void remove (Group group) {
+            mDataset.remove(group);
+            notifyDataSetChanged();
+        }
+
+        class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+
+            private ExpandableLayout expandableLayout;
+            private int position;
+
+            private ViewGroup parent;
+
+            public ImageView pic;
+            public TextView name;
+            public TextView bio;
+            public TextView leader;
+            public View theView;
+
+
+            public ViewHolder(View itemView, ViewGroup parent) {
+                super(itemView);
+
+                this.parent = parent;
+
+                pic = (ImageView) itemView.findViewById(R.id.group_pic);
+                name = (TextView) itemView.findViewById(R.id.group_name);
+                leader = (TextView) itemView.findViewById(R.id.leader);
+                bio = (TextView) itemView.findViewById(R.id.group_bio);
+
+                theView = itemView;
+
+                expandableLayout = (ExpandableLayout) itemView.findViewById(R.id.expandable_layout);
+                expandableLayout.setInterpolator(new OvershootInterpolator());
+
+                itemView.setOnClickListener(this);
+            }
+
+            public void bind(int position) {
+                this.position = position;
+                theView.setSelected(false);
+                expandableLayout.collapse(false);
+            }
+
+            @Override
+            public void onClick(View view) {
+
+                ViewHolder holder = (ViewHolder) recycler.findViewHolderForAdapterPosition(selectedItem);
+                final Group theGroup = mDataset.get(position);
+
+                if (holder != null) {
+                    holder.theView.setSelected(false);
+                    holder.expandableLayout.collapse();
+                }
+
+                if (position == selectedItem) {
+                    selectedItem = UNSELECTED;
+                } else {
+                    theView.setSelected(true);
+
+                    FrameLayout frame = (FrameLayout) expandableLayout.findViewById(R.id.frame);
+                    frame.removeAllViews();
+
+                    View expanded = LayoutInflater.from(parent.getContext())
+                            .inflate(R.layout.content_feed_expanded, parent, false);
+
+                    LinearLayout interestHolder = (LinearLayout) expanded.findViewById(R.id.interest_holder);
+
+                    if (theGroup.hasInterest("food"))
+                        showInterest("Food", R.drawable.profile_food, interestHolder);
+
+                    if (theGroup.hasInterest("entertainment"))
+                        showInterest("Events", R.drawable.profile_events, interestHolder);
+
+                    if (theGroup.hasInterest("music"))
+                        showInterest("Music", R.drawable.profile_music, interestHolder);
+
+                    if (theGroup.hasInterest("gaming"))
+                        showInterest("Gaming", R.drawable.profile_gaming, interestHolder);
+
+                    if (theGroup.hasInterest("party"))
+                        showInterest("Parties", R.drawable.profile_party, interestHolder);
+
+                    if (theGroup.hasInterest("sports"))
+                        showInterest("Sports", R.drawable.profile_sports, interestHolder);
+
+                    //INSERT CHECKS TO VERIFY RELATION WITH GROUP HERE, THEN ACT ACCORDINGLY. ALSO MAKE SURE CURRENT USER HAS A GROUP
+                    //Dummy check. No current relationship
+                    FrameLayout innerFrame = (FrameLayout) expanded.findViewById(R.id.dapp_option_frame);
+                    innerFrame.removeAllViews();
+                    View dappOptions = LayoutInflater.from(parent.getContext()).inflate(R.layout.content_dapp_options, parent, false);
+
+                    ((TextView) dappOptions.findViewById(R.id.dapp_up_text)).setText("Do you want to send ".concat(theGroup.getName()).concat(" a chat request?"));
+
+                    ((Button) dappOptions.findViewById(R.id.dappUp)).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Request request = new Request(App.getApp().me().getUid(), theGroup.getLeaderId(), App.getApp().me().getDisplayName(), theGroup.getLeaderName());
+                            request.save(SaveKeys.CREATE);
+                        }
+                    });
+
+                    innerFrame.addView(dappOptions);
+
+                    frame.addView(expanded);
+
+                    expandableLayout.expand();
+                    selectedItem = position;
+                }
+            }
+
+            private void showInterest(String text, int drawable, LinearLayout interestContainer) {
+                LinearLayout layout = new LinearLayout(mContext);
+                layout.setGravity(Gravity.CENTER);
+                layout.setOrientation(LinearLayout.VERTICAL);
+
+                float density = mContext.getResources().getDisplayMetrics().density;
+                int margin = (int) (10 * density);
+
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+                        (ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                params.setMargins(margin, margin, margin, margin);
+
+                ImageView image = new ImageView(mContext);
+                image.setImageResource(drawable);
+
+                TextView textView = new TextView(mContext);
+                textView.setGravity(Gravity.CENTER);
+                textView.setText(text);
+
+                layout.setLayoutParams(params);
+                layout.addView(image);
+                layout.addView(textView);
+
+                interestContainer.addView(layout);
+            }
+
+
+
+
+        }
+
+        /*
+    private void configureDappButton (ViewHolder holder, Group current) {
+        RequestStorage storage = App.getApp().getRequestStorage();
+        if (storage.hasDappedUp(current))
+            configureDappButtonForPendingOutgoingRequest(holder);
+        else if (storage.isFriends(current))
+            configureDappButtonForFriends(holder);
+        else if (storage.isDappedUpBy(current))
+            configureDappButtonForPendingIncomingRequest(holder, current);
+        else configureDappButtonForNoCurrentRelationship(holder, current);
+    }
+
+    private void configureDappButtonForPendingOutgoingRequest(ViewHolder holder) {
+        holder.dappUp.setText("Dapped!");
+        holder.dappUp.setEnabled(false);
+    }
+
+    private void configureDappButtonForFriends (ViewHolder holder) {
+        holder.dappUp.setText("Friends");
+        holder.dappUp.setEnabled(false);
+    }
+
+    private void configureDappButtonForPendingIncomingRequest (final ViewHolder holder, final Group current) {
+        holder.dappUp.setText("Accept");
+        holder.dappUp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                holder.dappUp.setText("Friends");
+                holder.dappUp.setEnabled(false);
+                App.getApp().getRequestStorage().get(current.getLeaderId()).accept();
+            }
+        });
+    }
+
+    private void configureDappButtonForNoCurrentRelationship (final ViewHolder holder, final Group current) {
+        holder.dappUp.setText("Dapp Up!");
+        holder.dappUp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("group").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot == null) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                            builder.setTitle("Oops!").setMessage("You must create a group before you dapp others up.");
+
+                            builder.setPositiveButton("Create...", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    Intent intent = new Intent(mContext, CreateGroupActivity.class);
+                                    intent.setAction(CreateGroupActivity.ACTION_CREATE);
+                                    mContext.startActivity(intent);
+                                }
+                            });
+                            builder.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    Log.i(TAG, "Cancelled");
+                                }
+                            });
+
+                            builder.create().show();
+                        }
+
+                        else {
+                            configureDappButtonForPendingOutgoingRequest(holder);
+                            Request request = new Request(App.getApp().me().getUid(), current.getLeaderId());
+                            request.save(SaveKeys.CREATE);
+                            App.getApp().getRequestStorage().putOutgoingRequest(request);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }
+        });
+    }
+    */
+}
+

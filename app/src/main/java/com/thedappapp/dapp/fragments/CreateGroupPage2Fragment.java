@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -76,7 +77,14 @@ public class CreateGroupPage2Fragment extends Fragment {
         done.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.onPage2Interaction(RequestCode.DONE);
+                if (adapter.getInterests().isEmpty()) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                    builder.setTitle("Hold up!")
+                            .setMessage("You have to select at least one interest to continue.")
+                            .setNeutralButton("Continue", null)
+                            .show();
+                }
+                else mListener.onPage2Interaction(RequestCode.DONE);
             }
         });
 
@@ -107,7 +115,6 @@ public class CreateGroupPage2Fragment extends Fragment {
 
     public Bundle pullInfo() {
         Bundle bundle = new Bundle();
-        ArrayList<String> interests = new ArrayList<>();
         bundle.putStringArrayList("interests", (ArrayList<String>) adapter.getInterests());
         return bundle;
     }

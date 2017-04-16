@@ -59,7 +59,7 @@ public class Conversation extends DappObject {
     @Exclude
     public String getOtherUser () {
         String title = null;
-        Map<String, Object> map = super.meta.getAllMiscellaneousData();
+        Map<String, Object> map = super.meta.getMisc_data();
         String[] people = (String[]) map.values().toArray();
 
         for (String person : people)

@@ -1,10 +1,15 @@
 package com.thedappapp.dapp.activities;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
+import android.net.Uri;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
@@ -27,6 +32,26 @@ public class CreateGroupActivity extends DappActivity
         implements CreateGroupPage1Fragment.Page1FragmentInteractionListener, CreateGroupPage2Fragment.Page2FragmentInteractionListener {
 
     private static final String TAG = CreateGroupActivity.class.getSimpleName();
+    private static final int CAMERA_FILE_READ_WRITE_REQUEST_CODE = 0;
+    private static final int LOCATION_REQUEST_CODE = 1;
+    private static final Intent APP_SETTINGS_INTENT;
+
+    public static final String ACTION_CREATE;
+    public static final String ACTION_EDIT;
+
+    static {
+        APP_SETTINGS_INTENT = new Intent();
+        APP_SETTINGS_INTENT.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        APP_SETTINGS_INTENT.addCategory(Intent.CATEGORY_DEFAULT);
+        APP_SETTINGS_INTENT.setData(Uri.parse("package:com.thedappapp.dapp"));
+        APP_SETTINGS_INTENT.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        APP_SETTINGS_INTENT.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+        APP_SETTINGS_INTENT.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+
+        ACTION_CREATE = "com.thedappapp.dapp.activities.actions.CREATE_GROUP";
+        ACTION_EDIT = "com.thedappapp.dapp.activities.actions.EDIT_GROUP";
+    }
+
 
     private FragmentManager fragmentManager;
     private int fragment;
@@ -35,9 +60,8 @@ public class CreateGroupActivity extends DappActivity
     private CreateGroupPage2Fragment page2;
     private Bundle page1Bundle, page2Bundle;
     private boolean editMode;
-
-    public static final String ACTION_EDIT = "com.thedappapp.dapp.activities.actions.EDIT_GROUP";
-    public static final String ACTION_CREATE = "com.thedappapp.dapp.activities.actions.CREATE_GROUP";
+    private Group group;
+    private SaveKeys code;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,8 +100,7 @@ public class CreateGroupActivity extends DappActivity
     public void onPage1Interaction(CreateGroupPage1Fragment.RequestCode code) {
         switch (code) {
             case DISPATCH_CAMERA:
-                page1.onPictureTaken();
-                camera.dispatch();
+                dispatchCameraIfPossible();
                 break;
             case DONE:
                 finalizePage1();
@@ -85,6 +108,91 @@ public class CreateGroupActivity extends DappActivity
                 break;
             default:
                 throw new IllegalArgumentException("Illegal request code received.");
+        }
+    }
+
+    private void dispatchCameraIfPossible () {
+        if (App.hasFilePermissions()) {
+            camera.dispatch();
+            page1.onPictureTaken(camera.getCapturedImageFile());
+        }
+        else
+            ActivityCompat.requestPermissions(this, new String [] {
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+            }, CAMERA_FILE_READ_WRITE_REQUEST_CODE);
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (grantResults.length <= 0) {
+            Log.w(TAG, "Permission result array has 0 indicies.");
+            throw new RuntimeException("Empty permission result."); //TODO: Get rid of this.
+        } else {
+            switch (requestCode) {
+                case CAMERA_FILE_READ_WRITE_REQUEST_CODE:
+                    onFilePermissionsResult(grantResults[0] == PackageManager.PERMISSION_GRANTED);
+                    break;
+                case LOCATION_REQUEST_CODE:
+                    onLocationPermissionResult(grantResults[0] == PackageManager.PERMISSION_GRANTED);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Illegal request code.");
+            }
+        }
+    }
+
+    private void onFilePermissionsResult (boolean granted) {
+        if (granted) {
+            camera.dispatch();
+            page1.onPictureTaken(camera.getCapturedImageFile());
+        }
+        else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Oops! We need permission to take your selfie!")
+                    .setMessage("In order to upload your selfie and it to your phone, Dapp needs file writing permissions. You can do this in Settings.")
+                    .setPositiveButton("Go to Settings", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int j) {
+                            startActivity(APP_SETTINGS_INTENT);
+                        }
+                    })
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Log.w(TAG, "File permission denied.");
+                        }
+                    }).show();
+        }
+    }
+
+    private void onLocationPermissionResult (boolean granted) {
+        if (granted)
+            startLocationUpdates(group, code);
+        else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Get featured on our map!!")
+                    .setMessage("We'd like to use your location to feature your group on our map, so" +
+                            " other Dapp users know you're nearby. You can give us permissions in Settings.")
+                    .setPositiveButton("Go to Settings", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int j) {
+                            startActivity(APP_SETTINGS_INTENT);
+                        }
+                    })
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Log.w(TAG, "Location permission denied. Saving without location.");
+                            group.setLocationEnabled(false);
+                            group.save(code);
+                            startActivity(new Intent(CreateGroupActivity.this, MyGroupActivity.class));
+                            finish();
+                        }
+                    }).show();
         }
     }
 
@@ -122,7 +230,7 @@ public class CreateGroupActivity extends DappActivity
 
         GroupFactory factory = new GroupFactory();
 
-        final Group group = factory.withName(name)
+        group = factory.withName(name)
                 .withBio(bio)
                 .withLeaderId(App.getApp().me().getUid())
                 .withLeaderName(App.getApp().me().getDisplayName())
@@ -130,67 +238,33 @@ public class CreateGroupActivity extends DappActivity
                 .withPic(camera.getCapturedImagePath())
                 .build();
 
-        final SaveKeys code;
         if (editMode) code = SaveKeys.UPDATE;
         else code = SaveKeys.CREATE;
 
 
 
 
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
-                PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
-                        PackageManager.PERMISSION_GRANTED)
+        if (App.hasLocationPermissions())
             startLocationUpdates(group, code);
-
-        else {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Get featured on our map!");
-            builder.setMessage("We'd like to use your location to feature your group on our map, so other Dapp users know you're nearby. What do you say?");
-            builder.setPositiveButton("Sure thing!", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    ActivityCompat.requestPermissions(CreateGroupActivity.this, new String[] {
-                                    android.Manifest.permission.ACCESS_FINE_LOCATION,
-                                    android.Manifest.permission.ACCESS_COARSE_LOCATION },
-                            0);
-                    if (ContextCompat.checkSelfPermission(CreateGroupActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
-                            PackageManager.PERMISSION_GRANTED &&
-                            ContextCompat.checkSelfPermission(CreateGroupActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
-                                    PackageManager.PERMISSION_GRANTED)
-                        startLocationUpdates(group, code);
-                }
-            });
-            builder.setNegativeButton("No thanks!", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    Log.d(TAG, "Negative option clicked.");
-                    group.save(code);
-                    finish();
-                }
-            });
-            builder.create().show();
-/*
-            if (App.getApp().hasLocationPermissions())
-                startLocationUpdates(group, code);
-            else {
-                Log.w(TAG, "Location permission denied by user. Saving without location.");
-                group.save(code);
-                finish();
-            } */
-        }
+        else
+            ActivityCompat.requestPermissions(this, new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+            }, LOCATION_REQUEST_CODE);
     }
 
     private void startLocationUpdates (Group group, SaveKeys code) {
         android.location.LocationManager manager = (android.location.LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        LocUpdateListener listener = new LocUpdateListener(manager, group, code);
+        LocUpdateListener listener = new LocUpdateListener(manager);
 
         boolean gpsEnabled = manager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER);
         boolean networkEnabled = manager.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER);
 
         if (!networkEnabled && !gpsEnabled) {
             Log.w(TAG, "Location not available. Saving without location.");
+            group.setLocationEnabled(false);
             group.save(code);
+            startActivity(new Intent(this, MyGroupActivity.class));
             finish();
         }
         else if (gpsEnabled) {
@@ -203,13 +277,9 @@ public class CreateGroupActivity extends DappActivity
 
     private class LocUpdateListener implements LocationListener {
         private android.location.LocationManager mManager;
-        private Group g;
-        private SaveKeys saveCode;
 
-        private LocUpdateListener(android.location.LocationManager theManager, Group g, SaveKeys saveCode) {
+        private LocUpdateListener(android.location.LocationManager theManager) {
             mManager = theManager;
-            this.g = g;
-            this.saveCode = saveCode;
         }
 
         @Override
@@ -219,11 +289,12 @@ public class CreateGroupActivity extends DappActivity
                     ContextCompat.checkSelfPermission(CreateGroupActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
                             PackageManager.PERMISSION_GRANTED) {
                 mManager.removeUpdates(this);
-                //setLocation(new GeoLocation(location.getLatitude(), location.getLongitude()));
-                g.getLocation().put("latitude", location.getLatitude());
-                g.getLocation().put("longitude", location.getLongitude());
-                g.save(saveCode);
-                finish(); //????????????????????????????????????????
+                group.getLocation().put("latitude", location.getLatitude());
+                group.getLocation().put("longitude", location.getLongitude());
+                group.setLocationEnabled(true);
+                group.save(code);
+                startActivity(new Intent(CreateGroupActivity.this, MyGroupActivity.class));
+                finish();
             }
         }
         @Override

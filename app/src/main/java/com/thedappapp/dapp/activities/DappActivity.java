@@ -4,11 +4,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
 import com.thedappapp.dapp.R;
-import com.thedappapp.dapp.app.DrawerResources;
+import com.thedappapp.dapp.app.Drawer;
 
 import com.thedappapp.dapp.interfaces.NoMenu;
 import com.thedappapp.dapp.interfaces.NoToolbar;
-import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 
 /**
@@ -40,24 +39,18 @@ public abstract class DappActivity extends AppCompatActivity {
     }
 
     protected void enableDrawer () {
-        DrawerResources.withContext(this);
         if (mToolbar == null)
             throw new IllegalStateException("Cannot enable drawer on a null Toolbar. Make sure you " +
                     "<include> the Toolbar in the current layout and call setToolbar().");
         else {
-            Drawer drawer = new DrawerBuilder().withActivity(this)
-                    .withToolbar(mToolbar)
-                    .addDrawerItems(DrawerResources.items())
-                    .withAccountHeader(DrawerResources.header())
-                    .withOnDrawerItemClickListener(new DrawerResources.DrawerListener())
-                    .build();
+            com.mikepenz.materialdrawer.Drawer drawer = com.thedappapp.dapp.app.Drawer.set(this, mToolbar);
 
             int activityIdentifier = -1;
-            if (this instanceof MainActivity) activityIdentifier = 3;
-            else if (this instanceof RequestsActivity) activityIdentifier = 4;
-            else if (this instanceof MapsActivity) activityIdentifier = 5;
-            else if (this instanceof FeedActivity) activityIdentifier = 6;
-            else if (this instanceof ChatSelectorActivity || this instanceof ChatThreadActivity) activityIdentifier = 7;
+            if (this instanceof MyGroupActivity) activityIdentifier = Drawer.HOME;
+            else if (this instanceof RequestsActivity) activityIdentifier = Drawer.REQUESTS;
+            else if (this instanceof MapsActivity) activityIdentifier = Drawer.MAP;
+            else if (this instanceof MainFeedActivity) activityIdentifier = Drawer.FEED;
+            else if (this instanceof ChatSelectorActivity || this instanceof ChatThreadActivity) activityIdentifier = Drawer.CHAT;
 
             if (activityIdentifier != -1) drawer.setSelectionAtPosition(activityIdentifier, false);
         }

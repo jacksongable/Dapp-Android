@@ -73,7 +73,7 @@ public class FcmReceiverService extends FirebaseMessagingService {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(FcmReceiverService.this);
         builder.setContentTitle("New Request");
-        builder.setContentText("blank dapped you up!");
+        builder.setContentText(message.get("fromName").concat(" requested to chat with you!"));
         builder.setAutoCancel(true);
         builder.setContentIntent(pendingIntent);
         builder.setSmallIcon(R.mipmap.ic_notification);

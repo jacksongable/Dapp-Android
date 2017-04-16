@@ -31,7 +31,6 @@ public class NoCurrentGroupFragment extends Fragment {
 
     private Callback mListener;
     private Button vCreateGroupButton;
-    private TextView vWelcome;
 
     @Override
     public void onAttach(Context context) {
@@ -52,7 +51,6 @@ public class NoCurrentGroupFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         vCreateGroupButton = (Button) view.findViewById(R.id.create_group);
-        vWelcome = (TextView) view.findViewById(R.id.hello_user);
 
         /*
         UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
@@ -68,11 +66,6 @@ public class NoCurrentGroupFragment extends Fragment {
                     }
                 });
                 */
-
-        String name = App.getApp().me().getDisplayName();
-
-        String welcome = "Hello " + name + "!";
-        vWelcome.setText(welcome);
 
         vCreateGroupButton.setOnClickListener(new View.OnClickListener() {
             @Override

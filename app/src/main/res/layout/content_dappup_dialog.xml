@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        android:id="@+id/frame">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Do you wanna Dapp Up $GROUPNAME?"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large"
+            android:gravity="center"
+            android:id="@+id/message"
+            android:layout_gravity="center"/>
+
+    </FrameLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/frame"
+        android:background="@color/colorPrimary"
+        android:gravity="center">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dapp"
+            android:text="GREEN CHECK"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RED X"
+            android:id="@+id/cancel"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="72dp"
+            android:layout_alignParentStart="true" />
+
+    </RelativeLayout>
+
+</RelativeLayout>
