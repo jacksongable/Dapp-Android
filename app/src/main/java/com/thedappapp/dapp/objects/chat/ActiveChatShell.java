@@ -51,15 +51,16 @@ public class ActiveChatShell {
         return group_name;
     }
 
-    public void save(@NonNull SaveKeys code) {
+    public void save(@NonNull SaveKeys code, String userUid) {
         if (code == SaveKeys.DO_NOTHING) return;
         else if (code == SaveKeys.DELETE) {
-            FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("active_chats").child(key).setValue(null);
+            FirebaseDatabase.getInstance().getReference("users").child(userUid).child("active_chats").child(key).setValue(null);
         }
         else {
-            DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("active_chats").push();
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(userUid).child("active_chats").push();
             key = ref.getKey();
             ref.setValue(this);
+
         }
     }
 }

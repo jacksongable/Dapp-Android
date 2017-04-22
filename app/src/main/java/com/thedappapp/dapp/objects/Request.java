@@ -14,7 +14,7 @@ import com.thedappapp.dapp.objects.chat.Conversation;
 /**
  * Created by jackson on 11/25/16.
  */
-public class Request extends DappObject {
+public class Request extends DappObject implements Parcelable {
 
     private String from_id;
 
@@ -71,7 +71,7 @@ public class Request extends DappObject {
             FirebaseDatabase.getInstance().getReference("requests").child(super.meta.getUid()).setValue(null);
         }
         else {
-            DatabaseReference ref = FirebaseDatabase.getInstance().getReference("requests").push();
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference("notifications").child(to_id).push();
             String push = ref.getKey();
             super.meta = new Metadata(push, ServerValue.TIMESTAMP, ServerValue.TIMESTAMP);
             ref.setValue(this);

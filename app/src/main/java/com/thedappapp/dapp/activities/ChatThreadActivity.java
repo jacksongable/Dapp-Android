@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -42,12 +43,18 @@ public class ChatThreadActivity extends DappActivity {
 
         conversationKey = getIntent().getExtras().getString("key");
         listener = new Listener();
-        setTitle("[PLACEHOLDER]");
+        setTitle(getIntent().getExtras().getString("name"));
 
         nocontent = (TextView) findViewById(R.id.no_content_message);
+        nocontent.setText("");
+
         messagesContainer = (ListView) findViewById(R.id.message_list);
         messageET = (EditText) findViewById(R.id.edit_message);
         sendBtn = (Button) findViewById(R.id.send_message);
+
+        adapter = new ChatThreadAdapter(this, new ArrayList<Message>());
+        messagesContainer.setAdapter(adapter);
+        scroll();
 
     }
 
@@ -55,32 +62,35 @@ public class ChatThreadActivity extends DappActivity {
     protected void onStart() {
         super.onStart();
 
-        loadHistory();
+        //loadHistory();
         messagesContainer.setDivider(null);
 
         FirebaseDatabase.getInstance().getReference("chats").child(conversationKey).child("messages").addChildEventListener(listener);
 
+        messageET.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                scroll();
+            }
+        });
+
         sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (messageET.getText().toString().isEmpty()) {
+                    Toast.makeText(ChatThreadActivity.this, "Oops! You can't send an empty message!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 Message message = new Message(messageET.getText().toString(),
-                                              App.getApp().me().getUid(),
-                                              App.getApp().me().getDisplayName());
+                        App.getApp().me().getUid(),
+                        App.getApp().me().getDisplayName());
 
                 messageET.setText("");
                 sendMessage(message);
+                scroll();
             }
         });
-    }
-
-    private void loadHistory(){
-        nocontent.setText("Start chatting!");
-        nocontent.setVisibility(View.VISIBLE);
-        List<Message> messages = new ArrayList<>();
-
-        adapter = new ChatThreadAdapter(this, messages);
-        messagesContainer.setAdapter(adapter);
-        scroll();
     }
 
     private void displayMessage(Message message) {

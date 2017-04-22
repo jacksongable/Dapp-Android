@@ -84,7 +84,11 @@ public class CreateGroupPage2Fragment extends Fragment {
                             .setNeutralButton("Continue", null)
                             .show();
                 }
-                else mListener.onPage2Interaction(RequestCode.DONE);
+                else {
+                    done.setEnabled(false);
+                    done.setText("Saving...");
+                    mListener.onPage2Interaction(RequestCode.DONE);
+                }
             }
         });
 

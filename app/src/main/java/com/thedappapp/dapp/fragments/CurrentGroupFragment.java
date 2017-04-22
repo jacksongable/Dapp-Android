@@ -14,6 +14,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -54,6 +56,7 @@ public class CurrentGroupFragment extends Fragment {
     private TextView vName, vBio;
     private Button delete, edit;
     private LinearLayout interestContainer;
+    private ProgressBar progressBar;
 
     //Data members
     private Callback callback;
@@ -67,6 +70,16 @@ public class CurrentGroupFragment extends Fragment {
         if (!(context instanceof Callback))
             throw new ClassCastException(context.getClass().getSimpleName() + " must implement Callback.");
         this.callback = (Callback) context;
+    }
+
+    private void showLoading(boolean loading) {
+        vGroupPic.setVisibility(loading ? View.GONE : View.VISIBLE);
+        vName.setVisibility(loading ? View.GONE : View.VISIBLE);
+        vBio.setVisibility(loading ? View.GONE : View.VISIBLE);
+        delete.setVisibility(loading ? View.GONE : View.VISIBLE);
+        edit.setVisibility(loading ? View.GONE : View.VISIBLE);
+        interestContainer.setVisibility(loading ? View.GONE : View.VISIBLE);
+        progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -86,7 +99,8 @@ public class CurrentGroupFragment extends Fragment {
         interestContainer = (LinearLayout) view.findViewById(R.id.interest_holder);
         delete = (Button) view.findViewById(R.id.delete_button);
         edit = (Button) view.findViewById(R.id.edit_button);
-
+        progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
+        showLoading(true);
     }
 
     @Override
@@ -131,7 +145,6 @@ public class CurrentGroupFragment extends Fragment {
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
             final Group theGroup = dataSnapshot.getValue(Group.class);
-            if (theGroup == null) return;
 
             vName.setText(theGroup.getName());
             vBio.setText(theGroup.getBio());
@@ -185,6 +198,8 @@ public class CurrentGroupFragment extends Fragment {
                     callback.onEditRequest(theGroup);
                 }
             });
+
+            showLoading(false);
         }
 
         @Override

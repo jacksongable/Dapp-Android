@@ -143,12 +143,12 @@ public class Drawer {
         }
 
         private void sendTextInvite () {
-            Intent text = new Intent(Intent.ACTION_VIEW);
-            text.setData(Uri.parse("sms:"));
-            text.setType("vnd.android-dir/mms-sms");
-            text.putExtra(Intent.EXTRA_TEXT, "Hey! Let's hang out! Download Dapp ehre and start " +
+            Intent sms = new Intent(Intent.ACTION_VIEW);
+            sms.setData(Uri.parse("sms:"));
+            sms.setType("vnd.android-dir/mms-sms");
+            sms.putExtra(Intent.EXTRA_TEXT, "Let's hang out! Download Dapp and start " +
                     "connecting to people near you!\n\nhttp://thedappapp.com");
-            context.startActivity(text);
+            context.startActivity(sms);
         }
     }
 

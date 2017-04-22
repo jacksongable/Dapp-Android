@@ -54,6 +54,7 @@ public class ChatSelectorActivity extends DappActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Intent intent = new Intent(ChatSelectorActivity.this, ChatThreadActivity.class);
                 intent.putExtra("key", ((ActiveChatShell) mAdapter.getItem(i)).getChat_id());
+                intent.putExtra("name", ((ActiveChatShell) mAdapter.getItem(i)).getGroup_name());
                 startActivity(intent);
             }
         });
@@ -65,7 +66,6 @@ public class ChatSelectorActivity extends DappActivity {
             nocontent.setText("Start dapping up other groups to chat!");
             nocontent.setVisibility(View.VISIBLE);
         }
-
     }
 
     private class Listener implements ChildEventListener {

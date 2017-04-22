@@ -103,7 +103,6 @@ public final class App extends MultiDexApplication {
 
     public DatabaseReference GROUPS;
     public DatabaseReference USER;
-    public DatabaseReference USER_REQUEST;
 
     public void setHasCurrentGroup (boolean has) {
         SharedPreferences pref = App.getApp().getSharedPreferences(App.PREFERENCES, Context.MODE_PRIVATE);
@@ -114,6 +113,28 @@ public final class App extends MultiDexApplication {
 
     public boolean hasCurrentGroup () {
         return getSharedPreferences(PREFERENCES, MODE_PRIVATE).getBoolean("hasGroup", false);
+    }
+
+    public void setCurrentGroupUid (String uid) {
+        SharedPreferences preferences = getSharedPreferences(PREFERENCES, MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString("gid", uid);
+        editor.commit();
+    }
+
+    public String getCurrentGroupUidOffline () {
+        return getSharedPreferences(PREFERENCES, MODE_PRIVATE).getString("gid", null);
+    }
+
+    public void setCurrentGroupNameOffline (String name) {
+        SharedPreferences preferences = getSharedPreferences(PREFERENCES, MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString("group_name", name);
+        editor.commit();
+    }
+
+    public String getCurrentGroupNameOffline () {
+        return getSharedPreferences(PREFERENCES, MODE_PRIVATE).getString("group_name", null);
     }
 
     public static void requestLocationPermissions (final Activity context) {

@@ -65,7 +65,7 @@ public class FcmReceiverService extends FirebaseMessagingService {
 
     private void doInvite (final Map<String, String> message) {
         Intent intent = new Intent(FcmReceiverService.this, GroupDetailsActivity.class);
-        intent.putExtra("gid", message.get("gid"));
+        intent.putExtra("gid", message.get("from_group"));
 
         PendingIntent pendingIntent = PendingIntent.getActivity(FcmReceiverService.this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
@@ -73,7 +73,7 @@ public class FcmReceiverService extends FirebaseMessagingService {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(FcmReceiverService.this);
         builder.setContentTitle("New Request");
-        builder.setContentText(message.get("fromName").concat(" requested to chat with you!"));
+        builder.setContentText(message.get("msg"));
         builder.setAutoCancel(true);
         builder.setContentIntent(pendingIntent);
         builder.setSmallIcon(R.mipmap.ic_notification);

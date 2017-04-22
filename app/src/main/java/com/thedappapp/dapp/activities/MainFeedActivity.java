@@ -4,19 +4,19 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
+import android.widget.ProgressBar;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.adapters.FeedAdapter;
+import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.objects.group.Group;
 import java.util.ArrayList;
 import java.util.List;
-
-import net.cachapa.expandablelayout.ExpandableLayout;
 
 public class MainFeedActivity extends DappActivity {
 
@@ -25,15 +25,22 @@ public class MainFeedActivity extends DappActivity {
     private RecyclerView mRecycler;
     private FeedAdapter adapter;
     private List<Group> list;
-    private Listener listener;
+    private GroupsNodeListener groupsNodeListener;
+    private PendingListener outgoingListener, incomingListener;
+    private ProgressBar bar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recycler);
 
+        bar = (ProgressBar) findViewById(R.id.progressBar);
         mRecycler = (RecyclerView) findViewById(R.id.recyclerview);
-        listener = new Listener();
+
+        groupsNodeListener = new GroupsNodeListener();
+        outgoingListener = new PendingListener();
+        incomingListener = new PendingListener();
+
         list = new ArrayList<>();
         adapter = new FeedAdapter(this, mRecycler, list);
 
@@ -41,28 +48,45 @@ public class MainFeedActivity extends DappActivity {
         manager.setOrientation(LinearLayoutManager.VERTICAL);
         mRecycler.setLayoutManager(manager);
         mRecycler.setAdapter(adapter);
-
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         Log.d(TAG, "Started.");
-        FirebaseDatabase.getInstance().getReference("groups").addChildEventListener(listener);
+        FirebaseDatabase.getInstance().getReference("groups").addChildEventListener(groupsNodeListener);
+        FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("pending_requests/outgoing").addChildEventListener(outgoingListener);
+        FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("pending_requests/incoming").addChildEventListener(incomingListener);
+    }
+
+    public boolean isOutgoingPending (Group group) {
+        return outgoingListener.isPending(group);
+    }
+
+    public boolean isIncomingPending (Group group) {
+        return incomingListener.isPending(group);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         Log.d(TAG, "Stopped.");
-        FirebaseDatabase.getInstance().getReference("groups").removeEventListener(listener);
+        FirebaseDatabase.getInstance().getReference("groups").removeEventListener(groupsNodeListener);
+        FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("pending_requests/outgoing").removeEventListener(outgoingListener);
+        FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("pending_requests/incoming").removeEventListener(incomingListener);
     }
 
-    private class Listener implements ChildEventListener {
+    private class GroupsNodeListener implements ChildEventListener {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-            Log.d(TAG + "$Listener", "Child added.");
-            adapter.add(dataSnapshot.getValue(Group.class));
+            if (bar.getVisibility() == View.VISIBLE && mRecycler.getVisibility() == View.GONE) {
+                bar.setVisibility(View.GONE);
+                mRecycler.setVisibility(View.VISIBLE);
+            }
+            Log.d(TAG + "$GroupsNodeListener", "Child added.");
+            Group g = dataSnapshot.getValue(Group.class);
+            if (!g.getLeaderId().equals(App.getApp().me().getUid()))
+                adapter.add(dataSnapshot.getValue(Group.class));
         }
 
         @Override
@@ -83,6 +107,48 @@ public class MainFeedActivity extends DappActivity {
         @Override
         public void onCancelled(DatabaseError databaseError) {
             Log.e(MainFeedActivity.class.getSimpleName(), Log.getStackTraceString(databaseError.toException()));
+        }
+    }
+
+    private class PendingListener implements ChildEventListener {
+
+        private List<String> pending;
+
+        private PendingListener () {
+            pending = new ArrayList<>();
+        }
+
+        private List<String> getAllPendingRequests() {
+            return pending;
+        }
+
+        private boolean isPending (Group group) {
+            return pending.contains(group.getMeta().getUid());
+        }
+
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            pending.add(dataSnapshot.getKey());
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+            Log.e(TAG, Log.getStackTraceString(databaseError.toException()));
         }
     }
 }

@@ -5,6 +5,8 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.FirebaseDatabase;
@@ -30,7 +32,7 @@ import com.thedappapp.dapp.objects.Metadata;
 /**
  * Created by jackson on 8/20/16.
  */
-public class Group extends DappObject {
+public class Group extends DappObject implements Parcelable {
 
     @Exclude
     private static final String TAG = Group.class.getSimpleName();
@@ -159,6 +161,8 @@ public class Group extends DappObject {
             OldGroup old = new OldGroup(this);
             old.save(SaveKeys.CREATE);
             App.getApp().setHasCurrentGroup(false);
+            App.getApp().setCurrentGroupUid(null);
+            App.getApp().setCurrentGroupNameOffline(null);
         }
 
         else {
@@ -179,8 +183,20 @@ public class Group extends DappObject {
             }
 
             finally {
-                groupReference.setValue(this);
+                groupReference.setValue(this).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "Success.");
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, Log.getStackTraceString(e));
+                    }
+                });
                 App.getApp().setHasCurrentGroup(true);
+                App.getApp().setCurrentGroupUid(super.meta.getUid());
+                App.getApp().setCurrentGroupNameOffline(name);
                 FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("group").setValue(meta.getUid());
             }
         }

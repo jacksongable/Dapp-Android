@@ -34,8 +34,7 @@
 
         <activity
             android:name=".activities.CreateGroupActivity"
-            android:label="New Group..." />
-
+            android:label="New Group" />
         <activity
             android:name=".activities.SplashActivity"
             android:theme="@style/SplashTheme">
@@ -52,9 +51,7 @@
         <activity
             android:name=".activities.MainFeedActivity"
             android:label="Feed" />
-        <activity
-            android:name=".activities.GroupDetailsActivity"
-            android:theme="@style/DappDialog" />
+        <activity android:name=".activities.GroupDetailsActivity" />
         <activity android:name=".activities.ChatSelectorActivity" />
         <activity android:name=".activities.ChatThreadActivity" />
         <activity
@@ -71,17 +68,18 @@
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
-
         <service
             android:name=".services.TokenUploadService"
             android:exported="false" />
-
-        <service
-            android:name=".services.FcmReceiverService">
+        <service android:name=".services.FcmReceiverService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
+        <activity
+            android:name=".activities.NotificationsActivity"
+            android:label="Notifications" />
     </application>
 
 </manifest>

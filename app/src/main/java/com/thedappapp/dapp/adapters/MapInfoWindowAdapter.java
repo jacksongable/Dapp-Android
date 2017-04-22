@@ -13,7 +13,6 @@ import com.thedappapp.dapp.activities.MapsActivity;
 import com.thedappapp.dapp.objects.group.Group;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
-import com.thedappapp.dapp.objects.group.MapsDataWrapper;
 
 import java.util.Map;
 

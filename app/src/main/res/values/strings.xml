@@ -41,4 +41,5 @@
     <string name="dapp_up">Dapp Up!</string>
     <string name="where_s_your_squad">Where\'s your squad?</string>
     <string name="disclaimer">By signing up for Dapp, you agree to Dapp\'s &lt;a href="http://www.thedappapp.com/user-agreement">User Agreement&lt;/a> and Privacy Policy."</string>
+    <string name="title_activity_notifications">NotificationsActivity</string>
 </resources>

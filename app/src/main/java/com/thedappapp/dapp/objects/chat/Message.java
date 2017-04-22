@@ -16,7 +16,7 @@ import com.thedappapp.dapp.objects.Metadata;
 /**
  * Created by jackson on 8/19/16.
  */
-public class Message extends DappObject {
+public class Message extends DappObject implements Parcelable {
 
     private String text, sender_id, sender_name;
 

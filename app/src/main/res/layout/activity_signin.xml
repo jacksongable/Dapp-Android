@@ -65,7 +65,7 @@
         android:layout_below="@id/imageView"
         android:layout_above="@id/login_button"
         app:radius="6dp"
-        app:slideInterval="2500"
+        app:slideInterval="3000"
         app:strokeColor="@color/white"
         app:strokeWidth="1dp"
         app:indicatorGravity="center_horizontal|bottom"

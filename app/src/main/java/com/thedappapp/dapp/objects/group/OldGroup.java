@@ -35,14 +35,6 @@ public class OldGroup extends DappObject {
         location = old.getLocation();
     }
 
-    private OldGroup (Parcel in) {
-        deleted = in.readValue(Object.class.getClassLoader());
-        created = in.readValue(Object.class.getClassLoader());
-        name = in.readString();
-        uid = in.readString();
-        location = in.readHashMap(HashMap.class.getClassLoader());
-    }
-
     public Object getDeleted () {
         return deleted;
     }
@@ -82,27 +74,4 @@ public class OldGroup extends DappObject {
         else ref.setValue(this);
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeValue(deleted);
-        parcel.writeValue(created);
-        parcel.writeString(name);
-        parcel.writeString(uid);
-        parcel.writeMap(location);
-    }
-
-    public static final Parcelable.Creator<OldGroup> CREATOR = new Parcelable.Creator<OldGroup>() {
-        public OldGroup createFromParcel(Parcel in) {
-            return new OldGroup(in);
-        }
-
-        public OldGroup[] newArray(int size) {
-            return new OldGroup[size];
-        }
-    };
 }

@@ -9,7 +9,7 @@ import com.thedappapp.dapp.app.SaveKeys;
  * Created by jackson on 1/22/17.
  */
 
-public abstract class DappObject implements Parcelable {
+public abstract class DappObject {
 
     protected Metadata meta;
 

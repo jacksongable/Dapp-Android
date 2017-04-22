@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.FrameLayout;
+import android.widget.ProgressBar;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -95,13 +96,20 @@ public class MyGroupActivity extends DappActivity
         public void onDataChange(DataSnapshot dataSnapshot) {
             String gid = dataSnapshot.getValue(String.class);
 
-            if (gid != null) onHasCurrentGroup(gid);
-            else onNoCurrentGroup();
+            if (gid != null) {
+                onHasCurrentGroup(gid);
+                App.getApp().setCurrentGroupUid(gid);
+            }
+            else {
+                onNoCurrentGroup();
+                App.getApp().setCurrentGroupNameOffline(null);
+                App.getApp().setCurrentGroupUid(null);
+            }
         }
 
         @Override
         public void onCancelled(DatabaseError databaseError) {
-            Log.d(MyGroupActivity.class.getSimpleName(), "Cancelled.");
+            Log.e(MyGroupActivity.class.getSimpleName(), Log.getStackTraceString(databaseError.toException()));
         }
     }
 }

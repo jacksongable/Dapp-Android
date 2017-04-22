@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * Created by jackson on 8/20/16.
  */
-public class Conversation extends DappObject {
+public class Conversation extends DappObject implements Parcelable {
 
     private List<Message> messages;
     private String user1Id, user2Id;

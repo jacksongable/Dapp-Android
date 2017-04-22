@@ -26,7 +26,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.thedappapp.dapp.objects.group.MapsDataWrapper;
 
 import java.security.Permissions;
 import java.util.HashMap;
@@ -96,7 +95,7 @@ public class MapsActivity extends DappActivity implements OnMapReadyCallback {
             adapter.put(marker.getId(), wrapper); */
 
             Group group = dataSnapshot.getValue(Group.class);
-            if (group.hasLocation()) {
+            if (group.hasLocation() && !group.getLeaderId().equals(App.getApp().me().getUid())) {
                 LatLng location = new LatLng(group.getLocation().get("latitude"), group.getLocation().get("longitude"));
                 Marker marker = mMap.addMarker(getMarkerOptions(location, group.getLeaderId().equals(App.getApp().me().getUid())));
                 markerMap.put(group.getMeta().getUid(), marker);
@@ -114,8 +113,8 @@ public class MapsActivity extends DappActivity implements OnMapReadyCallback {
 
         @Override
         public void onChildRemoved(DataSnapshot dataSnapshot) {
-            MapsDataWrapper wrapper = dataSnapshot.getValue(MapsDataWrapper.class);
-            Marker marker = markerMap.get(wrapper.getKey());
+            Group group = dataSnapshot.getValue(Group.class);
+            Marker marker = markerMap.get(group.getMeta().getUid());
             adapter.remove(marker.getId());
             marker.remove();
         }
@@ -134,7 +133,7 @@ public class MapsActivity extends DappActivity implements OnMapReadyCallback {
     @Override
     public void onStop () {
         super.onStop();
-        FirebaseDatabase.getInstance().getReference("map").removeEventListener(listener);
+        FirebaseDatabase.getInstance().getReference("groups").removeEventListener(listener);
     }
 
 

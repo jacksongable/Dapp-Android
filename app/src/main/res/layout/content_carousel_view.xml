@@ -5,4 +5,5 @@
     android:layout_height="match_parent"
     android:id="@+id/text"
     android:gravity="center"
-    android:padding="15dp"/>
+    android:padding="15dp"
+    android:textSize="18sp"/>

@@ -36,11 +36,10 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import com.synnapps.carouselview.CarouselView;
 import com.synnapps.carouselview.ViewListener;
 import com.thedappapp.dapp.R;
-import com.thedappapp.dapp.adapters.FeedAdapter;
-import com.thedappapp.dapp.interfaces.NoMenu;
+import com.thedappapp.dapp.interfaces.NoDrawer;
 import com.thedappapp.dapp.services.TokenUploadService;
 
-public class SignInActivity extends DappActivity implements NoMenu {
+public class SignInActivity extends DappActivity implements NoDrawer {
 
     private static final String TAG = SignInActivity.class.getSimpleName();
     private static final int GOOGLE_SIGN_IN = 1;
@@ -66,10 +65,9 @@ public class SignInActivity extends DappActivity implements NoMenu {
         carousel = (CarouselView) findViewById(R.id.carouselView);
         carousel.setPageCount(4);
 
-        final String[] carouselText = {"Create a group with your friends", "State your interests - tell us " +
-                "what you and your friends feel like doing.", "View and \"Dapp Up\" cool groups with " +
-                "whome you share similar interests.", "If another group Dapps you back, you are all" +
-                " sent to chat so you can make plans to hang out!"};
+        final String[] carouselText = {"Connect with people near you who share your interests.",
+                "Create a group and state what you want to do.", "Send a request to chat with cool people.",
+                "If they accept, you can chat!"};
 
         carousel.setViewListener(new ViewListener() {
             @Override

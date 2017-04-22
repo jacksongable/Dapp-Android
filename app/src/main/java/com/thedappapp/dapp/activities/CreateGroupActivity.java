@@ -130,7 +130,6 @@ public class CreateGroupActivity extends DappActivity
 
         if (grantResults.length <= 0) {
             Log.w(TAG, "Permission result array has 0 indicies.");
-            throw new RuntimeException("Empty permission result."); //TODO: Get rid of this.
         } else {
             switch (requestCode) {
                 case CAMERA_FILE_READ_WRITE_REQUEST_CODE:
