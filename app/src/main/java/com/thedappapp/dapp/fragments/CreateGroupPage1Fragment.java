@@ -1,12 +1,16 @@
 package com.thedappapp.dapp.fragments;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,6 +23,8 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.thedappapp.dapp.R;
+import com.thedappapp.dapp.activities.CameraActivity;
+import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.objects.group.Group;
 
 import java.io.File;
@@ -26,6 +32,9 @@ import java.io.File;
 public class CreateGroupPage1Fragment extends Fragment {
 
     private static final String TAG = CreateGroupPage1Fragment.class.getSimpleName();
+    private static final int CAMERA_FILE_READ_WRITE_REQUEST_CODE = 0;
+    private static final int RC_CAMERA_ACTIVITY = 12;
+
 
     public CreateGroupPage1Fragment() {
         // Required empty public constructor
@@ -79,8 +88,43 @@ public class CreateGroupPage1Fragment extends Fragment {
         // Get the bitmap in according to the width of the device
         //Bitmap bitmap = ImageUtility.decodeSampledBitmapFromPath(photoUri.getPath(), mSize.x, mSize.x);
 
-        hasTakenPicture = true;
         //Glide.with(this).load(bitmap).into(vCaptureImage);
+    }
+
+    private void dispatchCameraActivity () {
+        if (App.hasCameraPermission() && App.hasFilePermissions()) {
+            Intent camera = new Intent(getActivity(), CameraActivity.class);
+            getActivity().startActivityForResult(camera, RC_CAMERA_ACTIVITY);
+        }
+        else ActivityCompat.requestPermissions(getActivity(), new String [] {
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.CAMERA
+        }, CAMERA_FILE_READ_WRITE_REQUEST_CODE);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (grantResults.length <= 0) {
+            Log.w(TAG, "Permission result array has 0 indicies.");
+        }
+        else if (requestCode == CAMERA_FILE_READ_WRITE_REQUEST_CODE) {
+            boolean granted = true;
+            for (int result : grantResults)
+                if (result != PackageManager.PERMISSION_GRANTED)
+                    granted = false;
+            if (granted)
+                dispatchCameraActivity();
+            else Log.w(TAG, "PERMISSSION DENIED."); //TODO: Make this a better, safer check.
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        hasTakenPicture = true;
     }
 
     @Override
@@ -95,7 +139,7 @@ public class CreateGroupPage1Fragment extends Fragment {
         vCaptureImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.onPage1Interaction(RequestCode.DISPATCH_CAMERA);
+                dispatchCameraActivity();
             }
         });
 
@@ -116,7 +160,7 @@ public class CreateGroupPage1Fragment extends Fragment {
                     return;
                 } else error.setVisibility(View.INVISIBLE);
 
-                mListener.onPage1Interaction(RequestCode.DONE);
+                mListener.onPage1Interaction();
             }
         });
 
@@ -135,12 +179,7 @@ public class CreateGroupPage1Fragment extends Fragment {
         mListener = null;
     }
 
-    public enum RequestCode {
-        DISPATCH_CAMERA,
-        DONE
-    }
-
     public interface Page1FragmentInteractionListener {
-        void onPage1Interaction(RequestCode code);
+        void onPage1Interaction();
     }
 }

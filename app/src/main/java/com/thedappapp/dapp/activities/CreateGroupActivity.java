@@ -100,117 +100,9 @@ public class CreateGroupActivity extends DappActivity
     }
 
     @Override
-    public void onPage1Interaction(CreateGroupPage1Fragment.RequestCode code) {
-        switch (code) {
-            case DISPATCH_CAMERA:
-                dispatchCameraIfPossible();
-                break;
-            case DONE:
-                finalizePage1();
-                startPage2();
-                break;
-            default:
-                throw new IllegalArgumentException("Illegal request code received.");
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        page1.onPictureTaken(requestCode, resultCode, data);
-        super.onActivityResult(requestCode, resultCode, data);
-
-    }
-
-    private void dispatchCameraIfPossible () {
-        if (App.hasFilePermissions()) {
-            Intent intent = new Intent(this, CameraActivity.class);
-            startActivity(intent);
-
-            //Intent camera = new Intent(this, CameraActivity.class);
-            //startActivityForResult(camera, CAMERA_INTENT_REQUEST_CODE);
-
-            //camera.dispatch();
-            //page1.onPictureTaken(camera.getCapturedImageFile());
-        }
-        else
-            ActivityCompat.requestPermissions(this, new String [] {
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.CAMERA
-            }, CAMERA_FILE_READ_WRITE_REQUEST_CODE);
-
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (grantResults.length <= 0) {
-            Log.w(TAG, "Permission result array has 0 indicies.");
-        } else {
-            switch (requestCode) {
-                case CAMERA_FILE_READ_WRITE_REQUEST_CODE:
-                    onFilePermissionsResult(grantResults[0] == PackageManager.PERMISSION_GRANTED);
-                    break;
-                case LOCATION_REQUEST_CODE:
-                    onLocationPermissionResult(grantResults[0] == PackageManager.PERMISSION_GRANTED);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Illegal request code.");
-            }
-        }
-    }
-
-    private void onFilePermissionsResult (boolean granted) {
-        if (granted) {
-            dispatchCameraIfPossible();
-            //camera.dispatch();
-            //page1.onPictureTaken(camera.getCapturedImageFile());
-        }
-        else {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Oops! We need permission to take your selfie!")
-                    .setMessage("In order to upload your selfie and it to your phone, Dapp needs file writing permissions. You can do this in Settings.")
-                    .setPositiveButton("Go to Settings", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int j) {
-                            startActivity(APP_SETTINGS_INTENT);
-                        }
-                    })
-                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            Log.w(TAG, "File permission denied.");
-                        }
-                    }).show();
-        }
-    }
-
-    private void onLocationPermissionResult (boolean granted) {
-        if (granted)
-            startLocationUpdates(group, code);
-        else {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Get featured on our map!!")
-                    .setMessage("We'd like to use your location to feature your group on our map, so" +
-                            " other Dapp users know you're nearby. You can give us permissions in Settings.")
-                    .setPositiveButton("Go to Settings", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int j) {
-                            startActivity(APP_SETTINGS_INTENT);
-                        }
-                    })
-                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            Log.w(TAG, "Location permission denied. Saving without location.");
-                            group.setLocationEnabled(false);
-                            group.save(code);
-                            startActivity(new Intent(CreateGroupActivity.this, MyGroupActivity.class));
-                            finish();
-                        }
-                    }).show();
-        }
+    public void onPage1Interaction() {
+        finalizePage1();
+        startPage2();
     }
 
     protected void finalizePage1() {
@@ -224,15 +116,9 @@ public class CreateGroupActivity extends DappActivity
     }
 
     @Override
-    public void onPage2Interaction(CreateGroupPage2Fragment.RequestCode code) {
-        switch (code) {
-            case DONE:
-                finalizePage2();
-                buildGroup();
-                break;
-            default:
-                throw new IllegalArgumentException("Illegal request code received.");
-        }
+    public void onPage2Interaction() {
+        finalizePage2();
+        buildGroup();
     }
 
     protected void finalizePage2() {
@@ -284,12 +170,9 @@ public class CreateGroupActivity extends DappActivity
             startActivity(new Intent(this, MyGroupActivity.class));
             finish();
         }
-        //else if (gpsEnabled) {
-            manager.requestLocationUpdates(android.location.LocationManager.GPS_PROVIDER, 0L, 0f, listener);
-        //}
-       // else if (networkEnabled) {
-            manager.requestLocationUpdates(android.location.LocationManager.NETWORK_PROVIDER, 0L, 0f, listener);
-        //}
+        manager.requestLocationUpdates(android.location.LocationManager.GPS_PROVIDER, 0L, 0f, listener);
+        manager.requestLocationUpdates(android.location.LocationManager.NETWORK_PROVIDER, 0L, 0f, listener);
+
     }
 
     private class LocUpdateListener implements LocationListener {

@@ -87,7 +87,7 @@ public class CreateGroupPage2Fragment extends Fragment {
                 else {
                     done.setEnabled(false);
                     done.setText("Saving...");
-                    mListener.onPage2Interaction(RequestCode.DONE);
+                    mListener.onPage2Interaction();
                 }
             }
         });
@@ -123,11 +123,7 @@ public class CreateGroupPage2Fragment extends Fragment {
         return bundle;
     }
 
-    public enum RequestCode {
-        DONE
-    }
-
     public interface Page2FragmentInteractionListener {
-        void onPage2Interaction(RequestCode code);
+        void onPage2Interaction();
     }
 }

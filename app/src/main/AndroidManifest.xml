@@ -80,6 +80,9 @@
             android:name=".activities.NotificationsActivity"
             android:label="Notifications"
             android:screenOrientation="portrait" />
+        <activity android:name=".activities.CameraActivity"
+            android:screenOrientation="portrait" />
+
 
         <service
             android:name=".services.TokenUploadService"
@@ -99,7 +102,6 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".activities.CameraActivity"></activity>
     </application>
 
 </manifest>

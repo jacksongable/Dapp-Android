@@ -10,18 +10,14 @@ import com.thedappapp.dapp.app.App;
 
 import java.io.IOException;
 
-/**
- * Created by jackson on 5/7/17.
- */
+public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 
-public class PreviewSurfaceOld extends SurfaceView implements SurfaceHolder.Callback {
-
-    private static final String TAG = PreviewSurfaceOld.class.getSimpleName();
+    private static final String TAG = CameraPreview.class.getSimpleName();
 
     private SurfaceHolder mHolder;
     private Camera mCamera;
 
-    public PreviewSurfaceOld (Context context, Camera camera) {
+    public CameraPreview(Context context, Camera camera) {
         super(context);
         mCamera = camera;
 
@@ -29,7 +25,6 @@ public class PreviewSurfaceOld extends SurfaceView implements SurfaceHolder.Call
         // underlying surface is created and destroyed.
         mHolder = getHolder();
         mHolder.addCallback(this);
-
         // deprecated setting, but required on Android versions prior to 3.0
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
@@ -37,14 +32,13 @@ public class PreviewSurfaceOld extends SurfaceView implements SurfaceHolder.Call
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
+        // The Surface has been created, now tell the camera where to draw the preview.
         try {
             mCamera.setPreviewDisplay(surfaceHolder);
             mCamera.startPreview();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             App.exception(TAG, e);
         }
-
 
     }
 

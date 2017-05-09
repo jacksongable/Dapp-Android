@@ -226,6 +226,14 @@ public final class App extends MultiDexApplication {
 
     }
 
+    public static boolean hasCameraPermission () {
+        return
+                (ContextCompat.checkSelfPermission(singleton, Manifest.permission.CAMERA)
+                        ==
+                        PackageManager.PERMISSION_GRANTED);
+
+    }
+
     public static void acceptRequest (final Group theGroup) {
         //Create ChatMetaShell
         final DatabaseReference reference = FirebaseDatabase.getInstance().getReference("chats").push();
