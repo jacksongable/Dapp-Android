@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.location.Location;
 import android.location.LocationListener;
 import android.net.Uri;
@@ -13,13 +15,13 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.app.App;
-import com.thedappapp.dapp.app.Camera;
+import com.thedappapp.dapp.app.Compressor;
+import com.thedappapp.dapp.app.camera.DappCamera;
 import com.thedappapp.dapp.app.SaveKeys;
 import com.thedappapp.dapp.fragments.CreateGroupPage1Fragment;
 import com.thedappapp.dapp.fragments.CreateGroupPage2Fragment;
@@ -34,6 +36,7 @@ public class CreateGroupActivity extends DappActivity
     private static final String TAG = CreateGroupActivity.class.getSimpleName();
     private static final int CAMERA_FILE_READ_WRITE_REQUEST_CODE = 0;
     private static final int LOCATION_REQUEST_CODE = 1;
+    private static final int CAMERA_INTENT_REQUEST_CODE = 3;
     private static final Intent APP_SETTINGS_INTENT;
 
     public static final String ACTION_CREATE;
@@ -55,7 +58,7 @@ public class CreateGroupActivity extends DappActivity
 
     private FragmentManager fragmentManager;
     private int fragment;
-    private Camera camera;
+    private DappCamera camera;
     private CreateGroupPage1Fragment page1;
     private CreateGroupPage2Fragment page2;
     private Bundle page1Bundle, page2Bundle;
@@ -77,7 +80,7 @@ public class CreateGroupActivity extends DappActivity
 
         fragmentManager = getSupportFragmentManager();
         fragment = R.id.fragment;
-        camera = new Camera(this);
+        camera = new DappCamera(this);
 
         if (editMode) {
             page1 = CreateGroupPage1Fragment.newInstance((Group) getIntent().getExtras().getParcelable("edit"));
@@ -111,15 +114,29 @@ public class CreateGroupActivity extends DappActivity
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        page1.onPictureTaken(requestCode, resultCode, data);
+        super.onActivityResult(requestCode, resultCode, data);
+
+    }
+
     private void dispatchCameraIfPossible () {
         if (App.hasFilePermissions()) {
-            camera.dispatch();
-            page1.onPictureTaken(camera.getCapturedImageFile());
+            Intent intent = new Intent(this, CameraActivity.class);
+            startActivity(intent);
+
+            //Intent camera = new Intent(this, CameraActivity.class);
+            //startActivityForResult(camera, CAMERA_INTENT_REQUEST_CODE);
+
+            //camera.dispatch();
+            //page1.onPictureTaken(camera.getCapturedImageFile());
         }
         else
             ActivityCompat.requestPermissions(this, new String [] {
                     Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.CAMERA
             }, CAMERA_FILE_READ_WRITE_REQUEST_CODE);
 
     }
@@ -146,8 +163,9 @@ public class CreateGroupActivity extends DappActivity
 
     private void onFilePermissionsResult (boolean granted) {
         if (granted) {
-            camera.dispatch();
-            page1.onPictureTaken(camera.getCapturedImageFile());
+            dispatchCameraIfPossible();
+            //camera.dispatch();
+            //page1.onPictureTaken(camera.getCapturedImageFile());
         }
         else {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -231,8 +249,8 @@ public class CreateGroupActivity extends DappActivity
 
         group = factory.withName(name)
                 .withBio(bio)
-                .withLeaderId(App.getApp().me().getUid())
-                .withLeaderName(App.getApp().me().getDisplayName())
+                .withLeaderId(App.me().getUid())
+                .withLeaderName(App.me().getDisplayName())
                 .withInterests(interests)
                 .withPic(camera.getCapturedImagePath())
                 .build();
@@ -266,12 +284,12 @@ public class CreateGroupActivity extends DappActivity
             startActivity(new Intent(this, MyGroupActivity.class));
             finish();
         }
-        else if (gpsEnabled) {
+        //else if (gpsEnabled) {
             manager.requestLocationUpdates(android.location.LocationManager.GPS_PROVIDER, 0L, 0f, listener);
-        }
-        else if (networkEnabled) {
+        //}
+       // else if (networkEnabled) {
             manager.requestLocationUpdates(android.location.LocationManager.NETWORK_PROVIDER, 0L, 0f, listener);
-        }
+        //}
     }
 
     private class LocUpdateListener implements LocationListener {
@@ -283,10 +301,7 @@ public class CreateGroupActivity extends DappActivity
 
         @Override
         public void onLocationChanged(Location location) {
-            if (ContextCompat.checkSelfPermission(CreateGroupActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
-                    PackageManager.PERMISSION_GRANTED &&
-                    ContextCompat.checkSelfPermission(CreateGroupActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
-                            PackageManager.PERMISSION_GRANTED) {
+            if (App.hasLocationPermissions()) {
                 mManager.removeUpdates(this);
                 group.getLocation().put("latitude", location.getLatitude());
                 group.getLocation().put("longitude", location.getLongitude());

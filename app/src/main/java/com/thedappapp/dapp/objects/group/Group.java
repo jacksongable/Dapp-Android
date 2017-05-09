@@ -27,7 +27,6 @@ import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.app.Compressor;
 import com.thedappapp.dapp.app.SaveKeys;
 import com.thedappapp.dapp.objects.DappObject;
-import com.thedappapp.dapp.objects.Metadata;
 
 /**
  * Created by jackson on 8/20/16.
@@ -61,7 +60,7 @@ public class Group extends DappObject implements Parcelable {
         leaderId = in.readString();
         interests = new HashMap<>();
         in.readMap(interests, Map.class.getClassLoader());
-        meta = in.readParcelable(Metadata.class.getClassLoader());
+        //meta = in.readParcelable(Metadata.class.getClassLoader());
 
         //double lat = in.readDouble();
         //double lon = in.readDouble();
@@ -141,7 +140,7 @@ public class Group extends DappObject implements Parcelable {
 
     @Exclude
     public boolean isMine () {
-        return leaderId.equals(App.getApp().me().getUid());
+        return leaderId.equals(App.me().getUid());
     }
 
     public void setLocationEnabled (boolean enabled) {
@@ -156,11 +155,10 @@ public class Group extends DappObject implements Parcelable {
     @Override
     protected void saveInternal(@NonNull SaveKeys code) {
         if (code == SaveKeys.DELETE) {
-            FirebaseDatabase.getInstance().getReference("groups").child(meta.getUid()).setValue(null);
-            FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("group").setValue(null);
+            FirebaseDatabase.getInstance().getReference("groups").child(super.getUid()).setValue(null);
+            FirebaseDatabase.getInstance().getReference("users").child(App.me().getUid()).child("group").setValue(null);
             OldGroup old = new OldGroup(this);
             old.save(SaveKeys.CREATE);
-            App.getApp().setHasCurrentGroup(false);
             App.getApp().setCurrentGroupUid(null);
             App.getApp().setCurrentGroupNameOffline(null);
         }
@@ -169,10 +167,12 @@ public class Group extends DappObject implements Parcelable {
             DatabaseReference groupReference = FirebaseDatabase.getInstance().getReference("groups").push();
             switch (code) {
                 case CREATE:
-                    super.meta = new Metadata(groupReference.getKey(), ServerValue.TIMESTAMP, ServerValue.TIMESTAMP);
+                    super.putMetadata("uid", groupReference.getKey());
+                    super.putMetadata("created", ServerValue.TIMESTAMP);
+                    super.putMetadata("updated", ServerValue.TIMESTAMP);
                     break;
                 case UPDATE:
-                    meta.setUpdated(ServerValue.TIMESTAMP);
+                    super.putMetadata("updated", ServerValue.TIMESTAMP);
                     break;
             }
 
@@ -194,10 +194,10 @@ public class Group extends DappObject implements Parcelable {
                         Log.e(TAG, Log.getStackTraceString(e));
                     }
                 });
-                App.getApp().setHasCurrentGroup(true);
-                App.getApp().setCurrentGroupUid(super.meta.getUid());
+                //App.getApp().setCurrentGroupUid(super.meta.getUid());
+                App.getApp().setCurrentGroupUid(super.getUid());
                 App.getApp().setCurrentGroupNameOffline(name);
-                FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("group").setValue(meta.getUid());
+                FirebaseDatabase.getInstance().getReference("users").child(App.me().getUid()).child("group").setValue(super.getUid());
             }
         }
     }
@@ -205,8 +205,8 @@ public class Group extends DappObject implements Parcelable {
     private String uploadPhoto (InputStream stream) {
         StorageReference reference = FirebaseStorage.getInstance()
                                                     .getReference("group-photos")
-                                                    .child(App.getApp().me().getUid())
-                                                    .child(super.meta.getUid());
+                                                    .child(App.me().getUid())
+                                                    .child(super.getUid());
         reference.putStream(stream);
         return reference.toString();
     }
@@ -215,7 +215,7 @@ public class Group extends DappObject implements Parcelable {
     @Override
     public boolean equals (Object o) {
         if (!(o instanceof Group)) return false;
-        return getMeta().getUid().equals(((Group) o).getMeta().getUid());
+        return super.getUid().equals(((Group) o).getUid());
     }
 
     @Override
@@ -229,7 +229,7 @@ public class Group extends DappObject implements Parcelable {
         out.writeString(bio);
         out.writeString(leaderId);
         out.writeMap(interests);
-        out.writeParcelable(meta, 0);
+        //out.writeParcelable(meta, 0);
         //out.writeDouble(location.latitude);
         //out.writeDouble(location.longitude);
         out.writeMap(location);

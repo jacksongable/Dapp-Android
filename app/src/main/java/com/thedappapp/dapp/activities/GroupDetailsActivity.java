@@ -26,7 +26,7 @@ import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.app.SaveKeys;
 import com.thedappapp.dapp.interfaces.NoDrawer;
 import com.thedappapp.dapp.objects.Notification;
-import com.thedappapp.dapp.objects.chat.ActiveChatShell;
+import com.thedappapp.dapp.objects.chat.ChatMetaShell;
 import com.thedappapp.dapp.objects.group.Group;
 
 import java.util.ArrayList;
@@ -74,22 +74,21 @@ public class GroupDetailsActivity extends DappActivity implements NoDrawer {
                 finish();
             }
         });
-        //set dapp onclicklistener
 
         FirebaseDatabase.getInstance().getReference("users")
-                                      .child(App.getApp().me().getUid())
+                                      .child(App.me().getUid())
                                       .child("pending_requests/outgoing")
-                                      .addChildEventListener(new RelationshipListener());
+                                      .addChildEventListener(outgoing);
 
         FirebaseDatabase.getInstance().getReference("users")
-                .child(App.getApp().me().getUid())
+                .child(App.me().getUid())
                 .child("pending_requests/incoming")
-                .addChildEventListener(new RelationshipListener());
+                .addChildEventListener(incoming);
 
         FirebaseDatabase.getInstance().getReference("users")
-                .child(App.getApp().me().getUid())
+                .child(App.me().getUid())
                 .child("friends")
-                .addChildEventListener(new RelationshipListener());
+                .addChildEventListener(friends);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -112,74 +111,14 @@ public class GroupDetailsActivity extends DappActivity implements NoDrawer {
 
         @Override
         public void onClick(View view) {
-            if (view.getTag().equals(STATUS_NO_RELATIONSHIP)) sendRequest();
-            else if (view.getTag().equals(STATUS_INCOMING_PENDING)) acceptRequest();
+            if (view.getTag().equals(STATUS_NO_RELATIONSHIP))
+                App.sendRequest(theGroup, GroupDetailsActivity.this);
+            else if (view.getTag().equals(STATUS_INCOMING_PENDING))
+                App.acceptRequest(theGroup);
             else
                 throw new IllegalStateException("Either the view has been assigned an illegal tag, or the view's tag is status:friends or status:request-sent");
         }
 
-        private void sendRequest() {
-            Notification notification = new Notification(App.getApp().getCurrentGroupNameOffline()
-                                                        .concat(" sent you a chat request!"),
-                                                        theGroup.getLeaderId(),
-                                                        Notification.Types.NEW_REQUEST);
-            notification.save(SaveKeys.CREATE);
-
-            FirebaseDatabase.getInstance().getReference("users")
-                    .child(App.getApp().me().getUid())
-                    .child("pending_requests/outgoing")
-                    .child(theGroup.getMeta().getUid())
-                    .setValue(true);
-
-            FirebaseDatabase.getInstance().getReference("users")
-                    .child(App.getApp().me().getUid())
-                    .child("group")
-                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            FirebaseDatabase.getInstance().getReference("users")
-                                    .child(theGroup.getLeaderId())
-                                    .child("pending_requests/incoming")
-                                    .child(dataSnapshot.getValue(String.class))
-                                    .setValue(true);
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            Log.e(TAG, Log.getStackTraceString(databaseError.toException()));
-                        }
-                    });
-        }
-
-        private void acceptRequest() {
-            //Delete pending_requests/incoming entry
-            FirebaseDatabase.getInstance().getReference("users")
-                    .child(App.getApp().me().getUid()).child("pending_requests/incoming")
-                    .child(theGroup.getMeta().getUid()).setValue(null);
-
-            //Delete pending_requests/outgoing entry from other user's node
-            FirebaseDatabase.getInstance().getReference("users")
-                    .child(theGroup.getLeaderId()).child("pending_requests/outgoing")
-                    .child(App.getApp().getCurrentGroupUidOffline()).setValue(null);
-
-            //Add to "friends list" of both users' nodes
-            FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid())
-                    .child("friends_list").child(theGroup.getMeta().getUid()).setValue(true);
-            FirebaseDatabase.getInstance().getReference("users").child(theGroup.getLeaderId())
-                    .child("friends_list").child(App.getApp().getCurrentGroupUidOffline()).setValue(true);
-
-            //Send notification to other user
-            Notification notification = new Notification(App.getApp().getCurrentGroupNameOffline().concat(" accepted your chat request!")
-                                                        , theGroup.getLeaderId(), Notification.Types.REQUEST_ACCEPTED);
-            notification.save(SaveKeys.CREATE);
-
-            //Create ActiveChatShell
-            DatabaseReference reference = FirebaseDatabase.getInstance().getReference("chats").push();
-            ActiveChatShell shell = new ActiveChatShell(reference.getKey(), App.getApp().getCurrentGroupNameOffline());
-            shell.save(SaveKeys.CREATE, theGroup.getLeaderId());
-            shell = new ActiveChatShell(reference.getKey(), theGroup.getName());
-            shell.save(SaveKeys.CREATE, App.getApp().me().getUid());
-        }
     }
 
     @Override
@@ -193,6 +132,7 @@ public class GroupDetailsActivity extends DappActivity implements NoDrawer {
         public void onDataChange(DataSnapshot dataSnapshot) {
             Group group = dataSnapshot.getValue(Group.class);
             setTitle(group.getName());
+            dapp.setOnClickListener(new DappButtonListener(group));
             GroupDetailsActivity context = GroupDetailsActivity.this;
 
             //vGroupName.setText(group.getName());
@@ -296,7 +236,7 @@ public class GroupDetailsActivity extends DappActivity implements NoDrawer {
         }
 
         private boolean hasRelationship (Group group) {
-            return list.contains(group.getMeta().getUid());
+            return list.contains(group.getUid());
         }
 
         @Override
@@ -324,5 +264,5 @@ public class GroupDetailsActivity extends DappActivity implements NoDrawer {
             Log.e(TAG, Log.getStackTraceString(databaseError.toException()));
         }
     }
-    }
+}
 

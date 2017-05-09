@@ -13,6 +13,7 @@ import com.thedappapp.dapp.app.Drawer;
 import com.thedappapp.dapp.interfaces.NoDrawer;
 import com.thedappapp.dapp.interfaces.NoOptionsMenu;
 import com.thedappapp.dapp.interfaces.NoToolbar;
+import com.thedappapp.dapp.services.NotificationService;
 
 /**
  * The abstract root activity that all activities in this app should inherit from. This class provides
@@ -47,6 +48,7 @@ public abstract class DappActivity extends AppCompatActivity {
         if (! (this instanceof NoOptionsMenu)) {
             MenuInflater inflater = getMenuInflater();
             inflater.inflate(R.menu.actions, menu);
+            NotificationService.setBell(menu.getItem(0));
         }
         return super.onCreateOptionsMenu(menu);
     }
@@ -69,7 +71,6 @@ public abstract class DappActivity extends AppCompatActivity {
 
             int activityIdentifier = -1;
             if (this instanceof MyGroupActivity) activityIdentifier = Drawer.HOME;
-            else if (this instanceof RequestsActivity) activityIdentifier = Drawer.REQUESTS;
             else if (this instanceof MapsActivity) activityIdentifier = Drawer.MAP;
             else if (this instanceof MainFeedActivity) activityIdentifier = Drawer.FEED;
             else if (this instanceof ChatSelectorActivity || this instanceof ChatThreadActivity) activityIdentifier = Drawer.CHAT;

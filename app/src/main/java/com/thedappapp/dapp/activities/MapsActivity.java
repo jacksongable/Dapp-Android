@@ -5,12 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.firebase.geofire.GeoFire;
-import com.firebase.geofire.GeoLocation;
-import com.firebase.geofire.GeoQuery;
-import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.maps.model.Marker;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -27,7 +22,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.security.Permissions;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -95,10 +89,10 @@ public class MapsActivity extends DappActivity implements OnMapReadyCallback {
             adapter.put(marker.getId(), wrapper); */
 
             Group group = dataSnapshot.getValue(Group.class);
-            if (group.hasLocation() && !group.getLeaderId().equals(App.getApp().me().getUid())) {
+            if (group.hasLocation() && !group.getLeaderId().equals(App.me().getUid())) {
                 LatLng location = new LatLng(group.getLocation().get("latitude"), group.getLocation().get("longitude"));
-                Marker marker = mMap.addMarker(getMarkerOptions(location, group.getLeaderId().equals(App.getApp().me().getUid())));
-                markerMap.put(group.getMeta().getUid(), marker);
+                Marker marker = mMap.addMarker(getMarkerOptions(location, group.getLeaderId().equals(App.me().getUid())));
+                markerMap.put(group.getUid(), marker);
                 adapter.put(marker.getId(), group);
             } else {
                 Log.w(TAG, "No location data. Skipping...");
@@ -114,7 +108,7 @@ public class MapsActivity extends DappActivity implements OnMapReadyCallback {
         @Override
         public void onChildRemoved(DataSnapshot dataSnapshot) {
             Group group = dataSnapshot.getValue(Group.class);
-            Marker marker = markerMap.get(group.getMeta().getUid());
+            Marker marker = markerMap.get(group.getUid());
             adapter.remove(marker.getId());
             marker.remove();
         }

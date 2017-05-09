@@ -1,7 +1,5 @@
 package com.thedappapp.dapp.objects.group;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
 import com.google.firebase.database.DatabaseReference;
@@ -12,7 +10,6 @@ import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.app.SaveKeys;
 import com.thedappapp.dapp.objects.DappObject;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -29,8 +26,8 @@ public class OldGroup extends DappObject {
 
     public OldGroup (Group old) {
         deleted = ServerValue.TIMESTAMP;
-        created = old.getMeta().getCreated();
-        uid = old.getMeta().getUid();
+        created = old.getData("created");
+        uid = old.getUid();
         name = old.getName();
         location = old.getLocation();
     }
@@ -67,7 +64,7 @@ public class OldGroup extends DappObject {
 
     @Override
     protected void saveInternal(@NonNull SaveKeys code) {
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("old_groups").child(App.getApp().me().getUid()).child(uid);
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("old_groups").child(App.me().getUid()).child(uid);
 
         if (code == SaveKeys.DELETE)
             ref.setValue(null);

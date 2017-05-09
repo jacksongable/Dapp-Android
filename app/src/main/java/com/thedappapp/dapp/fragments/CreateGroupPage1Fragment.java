@@ -1,6 +1,10 @@
 package com.thedappapp.dapp.fragments;
 
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Point;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -14,10 +18,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.firebase.ui.storage.images.FirebaseImageLoader;
-import com.google.firebase.storage.FirebaseStorage;
 import com.thedappapp.dapp.R;
-import com.thedappapp.dapp.app.Camera;
 import com.thedappapp.dapp.objects.group.Group;
 
 import java.io.File;
@@ -71,10 +72,15 @@ public class CreateGroupPage1Fragment extends Fragment {
         return inflater.inflate(R.layout.fragment_create_group_page1, container, false);
     }
 
-    public void onPictureTaken (File pic) {
+    public void onPictureTaken (int requestCode, int resultCode, Intent data) {
+        Point mSize = new Point();
+        getActivity().getWindowManager().getDefaultDisplay().getSize(mSize);
+        Uri photoUri = data.getData();
+        // Get the bitmap in according to the width of the device
+        //Bitmap bitmap = ImageUtility.decodeSampledBitmapFromPath(photoUri.getPath(), mSize.x, mSize.x);
+
         hasTakenPicture = true;
-        Log.d(TAG, "Loading picture: ".concat(pic.getAbsolutePath()));
-        Glide.with(this).load(pic).into(vCaptureImage);
+        //Glide.with(this).load(bitmap).into(vCaptureImage);
     }
 
     @Override

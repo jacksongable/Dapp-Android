@@ -3,7 +3,6 @@ package com.thedappapp.dapp.activities;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -13,6 +12,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.adapters.NotificationsAdapter;
 import com.thedappapp.dapp.app.App;
+import com.thedappapp.dapp.app.SaveKeys;
 import com.thedappapp.dapp.interfaces.NoDrawer;
 import com.thedappapp.dapp.interfaces.NoOptionsMenu;
 import com.thedappapp.dapp.objects.Notification;
@@ -35,7 +35,7 @@ public class NotificationsActivity extends DappActivity implements NoDrawer, NoO
 
         mRecycler = (RecyclerView) findViewById(R.id.recyclerview);
         mAdapter = new NotificationsAdapter(new ArrayList<Notification>(), this);
-        notificationNode = FirebaseDatabase.getInstance().getReference("notifications").child(App.getApp().me().getUid());
+        notificationNode = FirebaseDatabase.getInstance().getReference("notifications").child(App.me().getUid());
         listener = new NotificationsListener();
 
         LinearLayoutManager manager = new LinearLayoutManager(this);
@@ -64,18 +64,23 @@ public class NotificationsActivity extends DappActivity implements NoDrawer, NoO
     protected void onStop() {
         super.onStop();
         notificationNode.removeEventListener(listener);
+        if (!mAdapter.getData().isEmpty())
+            for (Notification n: mAdapter.getData()) {
+                n.setRead(true);
+                n.save(SaveKeys.UPDATE);
+            }
     }
 
     private class NotificationsListener implements ChildEventListener {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             Notification notification = dataSnapshot.getValue(Notification.class);
-            mAdapter.add(notification);
+            if (!mAdapter.hasNotification(notification))
+                mAdapter.add(notification);
         }
 
         @Override
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
         }
 
         @Override
@@ -90,7 +95,7 @@ public class NotificationsActivity extends DappActivity implements NoDrawer, NoO
 
         @Override
         public void onCancelled(DatabaseError databaseError) {
-            Log.e(TAG, Log.getStackTraceString(databaseError.toException()));
+            App.handleDbErr(databaseError);
         }
     }
 

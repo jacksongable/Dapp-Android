@@ -3,6 +3,8 @@ package com.thedappapp.dapp.app;
 import android.graphics.*;
 import android.media.ExifInterface;
 
+import com.thedappapp.dapp.app.camera.DappCamera;
+
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -19,7 +21,7 @@ public class Compressor {
         String orientation = oldExif.getAttribute(ExifInterface.TAG_ORIENTATION);
 
         byte[] compressedBytes = rawCompress(toCompress);
-        File compressedFile = File.createTempFile("dapp_group_", ".jpg", Camera.getApplicationPhotoDirectory());
+        File compressedFile = File.createTempFile("dapp_group_", ".jpg", DappCamera.getApplicationPhotoDirectory());
         compressedFile.deleteOnExit();
 
         if (orientation != null) {

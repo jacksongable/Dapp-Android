@@ -37,7 +37,7 @@ public class FcmReceiverService extends FirebaseMessagingService {
         Log.d(TAG, "Message received: " + remoteMessage.getMessageId());
         if (data.get("type").equals("chat"))
             doMessage(data);
-        else if (data.get("type").equals("request"))
+        else if (data.get("type").equals("NEW_REQUEST") || data.get("type").equals("REQUEST_ACCEPTED"))
             doInvite(data);
 
 

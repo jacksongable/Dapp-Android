@@ -9,33 +9,42 @@ import com.facebook.FacebookSdk;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.materialdrawer.util.DrawerUIUtils;
 import com.thedappapp.dapp.R;
-import com.thedappapp.dapp.objects.group.Group;
-import com.thedappapp.dapp.objects.Request;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.UserHandle;
 import android.support.multidex.MultiDexApplication;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.ImageView;
 
 import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader;
 import com.mikepenz.materialdrawer.util.DrawerImageLoader;
 import com.bumptech.glide.Glide;
+import com.thedappapp.dapp.activities.CreateGroupActivity;
+import com.thedappapp.dapp.activities.DappActivity;
+import com.thedappapp.dapp.objects.Notification;
+import com.thedappapp.dapp.objects.chat.ChatMetaShell;
+import com.thedappapp.dapp.objects.group.Group;
+import com.thedappapp.dapp.services.NotificationService;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Created by jackson on 7/5/16.
@@ -48,6 +57,8 @@ public final class App extends MultiDexApplication {
 
     private static App singleton;
 
+    private Intent bellService;
+
     public static App getApp() {
         return singleton;
     }
@@ -58,7 +69,6 @@ public final class App extends MultiDexApplication {
         singleton = this;
         FirebaseApp.initializeApp(this);
         FacebookSdk.sdkInitialize(getApplicationContext());
-
         DrawerImageLoader.init(new AbstractDrawerImageLoader() {
             @Override
             public void set(ImageView imageView, Uri uri, Drawable placeholder) {
@@ -90,30 +100,60 @@ public final class App extends MultiDexApplication {
                 return super.placeholder(ctx, tag);
             }
         });
+
+        /*
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(
+                    "com.thedappapp.dapp",
+                    PackageManager.GET_SIGNATURES);
+            for (Signature signature : info.signatures) {
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+
+        } catch (NoSuchAlgorithmException e) {
+
+        } */
     }
 
-    public FirebaseUser me () {
+    public static Intent bellService () {
+        if (singleton.bellService == null)
+            singleton.bellService = new Intent(singleton, NotificationService.class);
+        return singleton.bellService;
+    }
+
+    @Override
+    public void onTerminate() {
+        super.onTerminate();
+        stopService(this.bellService);
+    }
+
+    public static FirebaseUser me() {
         return FirebaseAuth.getInstance().getCurrentUser();
     }
 
-    public boolean hasUser () {
+    public static void handleDbErr(DatabaseError error) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Database Exception: ");
+        builder.append(error.getMessage());
+        builder.append("\nDetails: ");
+        builder.append(error.getDetails().isEmpty() ? "No details." : error.getDetails());
+        builder.append("\nStack Trace: ");
+        builder.append(Log.getStackTraceString(error.toException()));
+
+        Log.e(TAG, builder.toString());
+    }
+
+    public static void exception(String tag, Exception e) {
+        Log.e(tag, Log.getStackTraceString(e));
+    }
+
+    public static boolean hasUser () {
         return me() != null;
     }
 
-
-    public DatabaseReference GROUPS;
-    public DatabaseReference USER;
-
-    public void setHasCurrentGroup (boolean has) {
-        SharedPreferences pref = App.getApp().getSharedPreferences(App.PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putBoolean("hasGroup", has);
-        editor.commit();
-    }
-
-    public boolean hasCurrentGroup () {
-        return getSharedPreferences(PREFERENCES, MODE_PRIVATE).getBoolean("hasGroup", false);
-    }
 
     public void setCurrentGroupUid (String uid) {
         SharedPreferences preferences = getSharedPreferences(PREFERENCES, MODE_PRIVATE);
@@ -183,6 +223,118 @@ public final class App extends MultiDexApplication {
                 (ContextCompat.checkSelfPermission(singleton, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                         ==
                 PackageManager.PERMISSION_GRANTED);
+
+    }
+
+    public static void acceptRequest (final Group theGroup) {
+        //Create ChatMetaShell
+        final DatabaseReference reference = FirebaseDatabase.getInstance().getReference("chats").push();
+        ChatMetaShell shell = new ChatMetaShell(reference.getKey(), App.getApp().getCurrentGroupNameOffline(), App.me().getUid());
+        shell.save(SaveKeys.CREATE, theGroup.getLeaderId());
+        shell = new ChatMetaShell(reference.getKey(), theGroup.getName(), theGroup.getLeaderId());
+        shell.save(SaveKeys.CREATE, App.me().getUid());
+
+        //Delete pending_requests/incoming entry
+        FirebaseDatabase.getInstance().getReference("users")
+                .child(App.me().getUid()).child("pending_requests/incoming")
+                .child(theGroup.getUid()).setValue(null);
+
+        //Delete pending_requests/outgoing entry from other user's node
+        FirebaseDatabase.getInstance().getReference("users")
+                .child(theGroup.getLeaderId()).child("pending_requests/outgoing")
+                .child(App.getApp().getCurrentGroupUidOffline()).setValue(null);
+
+        //Add to "friends list" of both users' nodes
+        FirebaseDatabase.getInstance().getReference("users").child(App.me().getUid())
+                .child("friends").child(theGroup.getUid()).setValue(true);
+        FirebaseDatabase.getInstance().getReference("users").child(theGroup.getLeaderId())
+                .child("friends").child(App.getApp().getCurrentGroupUidOffline()).setValue(true);
+
+        //Send notification to other user
+        FirebaseDatabase.getInstance().getReference("groups").child(App.getApp().getCurrentGroupUidOffline()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Group current = dataSnapshot.getValue(Group.class);
+                Notification notification = new Notification(current.getName().concat(" accepted your chat request!")
+                        , theGroup.getLeaderId(), Notification.Types.REQUEST_ACCEPTED, current.getPhoto());
+                notification.putMetadata("conversation_key", reference.getKey());
+                notification.save(SaveKeys.CREATE);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+
+
+    public static void sendRequest (final Group theGroup, final DappActivity context) {
+        FirebaseDatabase.getInstance().getReference("users").child(App.me().getUid()).child("group").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final String MY_GROUP = dataSnapshot.getValue(String.class);
+                if (MY_GROUP == null) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    builder.setTitle("Whoops!");
+                    builder.setMessage("Sorry, you need to create a group before you can chat.");
+                    builder.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.dismiss();
+                        }
+                    });
+                    builder.setPositiveButton("Create", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Intent intent = new Intent(singleton, CreateGroupActivity.class);
+                            intent.setAction(CreateGroupActivity.ACTION_CREATE);
+                            singleton.startActivity(intent);
+                        }
+                    });
+                    builder.show();
+                    return;
+                }
+
+                FirebaseDatabase.getInstance().getReference("groups").child(MY_GROUP).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Group current = dataSnapshot.getValue(Group.class);
+
+                        Notification notification = new Notification(current.getName()
+                                .concat(" sent you a chat request!"),
+                                theGroup.getLeaderId(),
+                                Notification.Types.NEW_REQUEST, current.getPhoto());
+                        notification.save(SaveKeys.CREATE);
+
+                        FirebaseDatabase.getInstance().getReference("users")
+                                .child(App.me().getUid())
+                                .child("pending_requests/outgoing")
+                                .child(theGroup.getUid())
+                                .setValue(true);
+
+                        FirebaseDatabase.getInstance().getReference("users")
+                                .child(theGroup.getLeaderId())
+                                .child("pending_requests/incoming")
+                                .child(MY_GROUP)
+                                .setValue(true);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        App.handleDbErr(databaseError);
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                App.handleDbErr(databaseError);
+            }
+        });
+
 
     }
 }

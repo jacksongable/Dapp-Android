@@ -145,6 +145,7 @@ public class CurrentGroupFragment extends Fragment {
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
             final Group theGroup = dataSnapshot.getValue(Group.class);
+            if (theGroup == null) return;
 
             vName.setText(theGroup.getName());
             vBio.setText(theGroup.getBio());
@@ -204,7 +205,7 @@ public class CurrentGroupFragment extends Fragment {
 
         @Override
         public void onCancelled(DatabaseError databaseError) {
-            Log.d(TAG, "Cancelled.");
+            App.handleDbErr(databaseError);
         }
     }
 }

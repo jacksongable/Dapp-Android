@@ -94,7 +94,7 @@ public class MapInfoWindowAdapter implements GoogleMap.InfoWindowAdapter, Google
     @Override
     public void onInfoWindowClick(Marker marker) {
         Intent intent = new Intent (mContext, GroupDetailsActivity.class);
-        intent.putExtra("gid", map.get(marker.getId()).getMeta().getUid());
+        intent.putExtra("gid", map.get(marker.getId()).getUid());
         mContext.startActivity(intent);
     }
 }

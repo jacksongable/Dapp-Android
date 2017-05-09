@@ -50,13 +50,13 @@ public class TokenUploadService extends IntentService {
         }
 
         else {
-            FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("push_token").setValue(token);
+            FirebaseDatabase.getInstance().getReference("users").child(App.me().getUid()).child("push_token").setValue(token);
             Log.d(TAG, "Registered token to server.");
         }
     }
 
     private void handleDeleteToken() {
-        FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("device_token").setValue(null);
+        FirebaseDatabase.getInstance().getReference("users").child(App.me().getUid()).child("device_token").setValue(null);
         Log.d(TAG, "Purged token from server.");
     }
 }

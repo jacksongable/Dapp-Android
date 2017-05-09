@@ -33,6 +33,7 @@ public class MainFeedActivity extends DappActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recycler);
+        startService(App.bellService());
 
         bar = (ProgressBar) findViewById(R.id.progressBar);
         mRecycler = (RecyclerView) findViewById(R.id.recyclerview);
@@ -55,8 +56,8 @@ public class MainFeedActivity extends DappActivity {
         super.onStart();
         Log.d(TAG, "Started.");
         FirebaseDatabase.getInstance().getReference("groups").addChildEventListener(groupsNodeListener);
-        FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("pending_requests/outgoing").addChildEventListener(outgoingListener);
-        FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("pending_requests/incoming").addChildEventListener(incomingListener);
+        FirebaseDatabase.getInstance().getReference("users").child(App.me().getUid()).child("pending_requests/outgoing").addChildEventListener(outgoingListener);
+        FirebaseDatabase.getInstance().getReference("users").child(App.me().getUid()).child("pending_requests/incoming").addChildEventListener(incomingListener);
     }
 
     public boolean isOutgoingPending (Group group) {
@@ -71,21 +72,25 @@ public class MainFeedActivity extends DappActivity {
     protected void onStop() {
         super.onStop();
         Log.d(TAG, "Stopped.");
+        if (! App.hasUser()) return; //TODO: Figure this out.
         FirebaseDatabase.getInstance().getReference("groups").removeEventListener(groupsNodeListener);
-        FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("pending_requests/outgoing").removeEventListener(outgoingListener);
-        FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("pending_requests/incoming").removeEventListener(incomingListener);
+        FirebaseDatabase.getInstance().getReference("users").child(App.me().getUid()).child("pending_requests/outgoing").removeEventListener(outgoingListener);
+        FirebaseDatabase.getInstance().getReference("users").child(App.me().getUid()).child("pending_requests/incoming").removeEventListener(incomingListener);
     }
 
     private class GroupsNodeListener implements ChildEventListener {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            Group g = dataSnapshot.getValue(Group.class);
+
+            if (adapter.hasGroup(g)) return;
+
             if (bar.getVisibility() == View.VISIBLE && mRecycler.getVisibility() == View.GONE) {
                 bar.setVisibility(View.GONE);
                 mRecycler.setVisibility(View.VISIBLE);
             }
-            Log.d(TAG + "$GroupsNodeListener", "Child added.");
-            Group g = dataSnapshot.getValue(Group.class);
-            if (!g.getLeaderId().equals(App.getApp().me().getUid()))
+            Log.d(TAG.concat("$GroupsNodeListener"), "Child added.");
+            if (!g.getLeaderId().equals(App.me().getUid()))
                 adapter.add(dataSnapshot.getValue(Group.class));
         }
 
@@ -118,12 +123,8 @@ public class MainFeedActivity extends DappActivity {
             pending = new ArrayList<>();
         }
 
-        private List<String> getAllPendingRequests() {
-            return pending;
-        }
-
         private boolean isPending (Group group) {
-            return pending.contains(group.getMeta().getUid());
+            return pending.contains(group.getUid());
         }
 
         @Override
@@ -148,7 +149,7 @@ public class MainFeedActivity extends DappActivity {
 
         @Override
         public void onCancelled(DatabaseError databaseError) {
-            Log.e(TAG, Log.getStackTraceString(databaseError.toException()));
+            App.handleDbErr(databaseError);
         }
     }
 }

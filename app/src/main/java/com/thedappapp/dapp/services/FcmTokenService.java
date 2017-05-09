@@ -26,7 +26,7 @@ public class FcmTokenService extends FirebaseInstanceIdService {
         editor.putString("push_token", refreshedToken);
         editor.commit();
 
-        if (App.getApp().hasUser()) {
+        if (App.hasUser()) {
             Intent register = new Intent(this, TokenUploadService.class);
             register.setAction(TokenUploadService.REGISTER_TOKEN);
             startService(register);

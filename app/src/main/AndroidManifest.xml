@@ -12,7 +12,9 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
+    <uses-feature android:name="android.hardware.camera.autofocus" />
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
@@ -24,7 +26,7 @@
         android:label="Dapp"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        tools:replace="android:label">
+        tools:replace="android:theme,android:label">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDuQot9FiptEuUEx7ltyP1NjRhRgwEzQhE" />
@@ -33,10 +35,8 @@
             android:value="@string/facebook_app_id" />
 
         <activity
-            android:name=".activities.CreateGroupActivity"
-            android:label="New Group" />
-        <activity
             android:name=".activities.SplashActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -44,42 +44,62 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.MyGroupActivity" />
+        <activity
+            android:name=".activities.CreateGroupActivity"
+            android:label="New Group"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activities.MyGroupActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".activities.MapsActivity"
-            android:label="Map" />
+            android:label="Map"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".activities.MainFeedActivity"
-            android:label="Feed" />
-        <activity android:name=".activities.GroupDetailsActivity" />
-        <activity android:name=".activities.ChatSelectorActivity" />
-        <activity android:name=".activities.ChatThreadActivity" />
+            android:label="Feed"
+            android:screenOrientation="portrait" />
         <activity
-            android:name=".activities.RequestsActivity"
-            android:label="Requests" />
-        <activity android:name=".activities.SignInActivity" />
+            android:name=".activities.GroupDetailsActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activities.ChatSelectorActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activities.ChatThreadActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activities.SignInActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name="com.facebook.FacebookActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            android:label="@string/app_name" />
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activities.NotificationsActivity"
+            android:label="Notifications"
+            android:screenOrientation="portrait" />
 
+        <service
+            android:name=".services.TokenUploadService"
+            android:exported="false" />
+        <service
+            android:name=".services.NotificationService"
+            android:enabled="true"
+            android:exported="false" />
         <service android:name=".services.FcmTokenService">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
-        <service
-            android:name=".services.TokenUploadService"
-            android:exported="false" />
         <service android:name=".services.FcmReceiverService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
 
-        <activity
-            android:name=".activities.NotificationsActivity"
-            android:label="Notifications" />
+        <activity android:name=".activities.CameraActivity"></activity>
     </application>
 
 </manifest>

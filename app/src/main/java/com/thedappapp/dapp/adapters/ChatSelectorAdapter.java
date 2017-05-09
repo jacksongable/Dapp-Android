@@ -7,8 +7,9 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 import com.thedappapp.dapp.R;
-import com.thedappapp.dapp.objects.chat.ActiveChatShell;
-import com.thedappapp.dapp.objects.chat.Conversation;
+import com.thedappapp.dapp.objects.chat.ChatMetaShell;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,11 +18,16 @@ import java.util.List;
 public class ChatSelectorAdapter extends BaseAdapter {
 
     private Context mContext;
-    private List<ActiveChatShell> conversations;
+    private List<ChatMetaShell> conversations;
+    private List<String> convoUids;
 
-    public ChatSelectorAdapter (Context context, List<ActiveChatShell> list) {
+    public ChatSelectorAdapter (Context context, List<ChatMetaShell> list) {
         mContext = context;
         conversations = list;
+        convoUids = new ArrayList<>();
+
+        for (ChatMetaShell shell : list)
+            convoUids.add(shell.getChat_id());
     }
 
     @Override
@@ -48,10 +54,13 @@ public class ChatSelectorAdapter extends BaseAdapter {
 
         if (view == null) {
             view = inflater.inflate(R.layout.content_chat_label, null);
-            //String msg = conversations.get(i).getLastMessage();
             holder = createViewHolder(view);
             holder.otherUser.setText(conversations.get(i).getGroup_name());
-            //holder.lastMessage.setText(msg);
+            holder.lastMessage.setText(conversations.get(i).getLast_message());
+
+            if (conversations.get(i).getUnread() != 0)
+                holder.unreadBadge.setText(String.valueOf(conversations.get(i).getUnread()));
+            else holder.unreadBadge.setVisibility(View.INVISIBLE);
         }
 
         return view;
@@ -60,18 +69,24 @@ public class ChatSelectorAdapter extends BaseAdapter {
     private ViewHolder createViewHolder (View view) {
         ViewHolder holder = new ViewHolder();
         holder.otherUser = (TextView) view.findViewById(R.id.group_name);
-        //holder.lastMessage = (TextView) view.findViewById(R.id.last_message);
+        holder.lastMessage = (TextView) view.findViewById(R.id.last);
+        holder.unreadBadge = (TextView) view.findViewById(R.id.unread_count);
         return holder;
     }
 
-    public void add (ActiveChatShell shell) {
+    public boolean add (ChatMetaShell shell) {
+        if (convoUids.contains(shell.getChat_id()))
+            return false;
         conversations.add(shell);
+        convoUids.add(shell.getChat_id());
         notifyDataSetChanged();
+        return true;
     }
 
     private static class ViewHolder {
-        public TextView otherUser;
-        //public TextView lastMessage;
+        private TextView otherUser;
+        private TextView lastMessage;
+        private TextView unreadBadge;
     }
 
 }

@@ -18,17 +18,18 @@ import com.thedappapp.dapp.objects.Metadata;
  */
 public class Message extends DappObject implements Parcelable {
 
-    private String text, sender_id, sender_name;
+    private String text, sender_id, sender_name, to;
 
     @Exclude
     private transient String convoId;
 
     public Message () {}
 
-    public Message (String text, String senderId, String senderName) {
+    public Message (String text, String senderId, String senderName, String toId) {
         this.text = text;
         this.sender_id = senderId;
         this.sender_name = senderName;
+        this.to = toId;
         convoId = null;
     }
 
@@ -50,6 +51,10 @@ public class Message extends DappObject implements Parcelable {
         return sender_name;
     }
 
+    public String getTo () {
+        return to;
+    }
+
     public Message intoConversation (String id) {
         convoId = id;
         return this;
@@ -64,11 +69,12 @@ public class Message extends DappObject implements Parcelable {
             throw new IllegalStateException("Call intoConversation(String) first so we know what conversation to save the message to.");
 
         else if (code == SaveKeys.DELETE) {
-            FirebaseDatabase.getInstance().getReference("chat").child(convoId).child("messages").child(super.meta.getUid()).setValue(null);
+            FirebaseDatabase.getInstance().getReference("chat").child(convoId).child("messages").child(super.getUid()).setValue(null);
         }
         else {
             DatabaseReference msgRef = FirebaseDatabase.getInstance().getReference("chats").child(convoId).child("messages").push();
-            super.meta = new Metadata(msgRef.getKey(), ServerValue.TIMESTAMP, null);
+            super.putMetadata("uid", msgRef.getKey());
+            super.putMetadata("created", ServerValue.TIMESTAMP);
             msgRef.setValue(this);
         }
     }

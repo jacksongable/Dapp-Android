@@ -68,12 +68,12 @@ public class Request extends DappObject implements Parcelable {
     @Override
     protected void saveInternal(@NonNull SaveKeys code) {
         if (code == SaveKeys.DELETE) {
-            FirebaseDatabase.getInstance().getReference("requests").child(super.meta.getUid()).setValue(null);
+            //FirebaseDatabase.getInstance().getReference("requests").child(super.meta.getUid()).setValue(null);
         }
         else {
             DatabaseReference ref = FirebaseDatabase.getInstance().getReference("notifications").child(to_id).push();
             String push = ref.getKey();
-            super.meta = new Metadata(push, ServerValue.TIMESTAMP, ServerValue.TIMESTAMP);
+            //super.meta = new Metadata(push, ServerValue.TIMESTAMP, ServerValue.TIMESTAMP);
             ref.setValue(this);
 
             ref = FirebaseDatabase.getInstance().getReference("users").child(from_id).child("pending_requests/outgoing").child(push);

@@ -18,10 +18,9 @@ import com.thedappapp.dapp.adapters.ChatThreadAdapter;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.app.SaveKeys;
-import com.thedappapp.dapp.objects.chat.Conversation;
+import com.thedappapp.dapp.objects.chat.ChatMetaShell;
 import com.thedappapp.dapp.objects.chat.Message;
 import java.util.ArrayList;
-import java.util.List;
 
 public class ChatThreadActivity extends DappActivity {
 
@@ -35,6 +34,7 @@ public class ChatThreadActivity extends DappActivity {
 
     private String conversationKey;
     private Listener listener;
+    private String toId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +42,7 @@ public class ChatThreadActivity extends DappActivity {
         setContentView(R.layout.activity_chat_thread);
 
         conversationKey = getIntent().getExtras().getString("key");
+        toId = getIntent().getExtras().getString("to");
         listener = new Listener();
         setTitle(getIntent().getExtras().getString("name"));
 
@@ -65,7 +66,7 @@ public class ChatThreadActivity extends DappActivity {
         //loadHistory();
         messagesContainer.setDivider(null);
 
-        FirebaseDatabase.getInstance().getReference("chats").child(conversationKey).child("messages").addChildEventListener(listener);
+        FirebaseDatabase.getInstance().getReference("chats").child(conversationKey).addChildEventListener(listener);
 
         messageET.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -83,8 +84,9 @@ public class ChatThreadActivity extends DappActivity {
                 }
 
                 Message message = new Message(messageET.getText().toString(),
-                        App.getApp().me().getUid(),
-                        App.getApp().me().getDisplayName());
+                        App.me().getUid(),
+                        App.me().getDisplayName(),
+                        toId);
 
                 messageET.setText("");
                 sendMessage(message);
@@ -99,10 +101,54 @@ public class ChatThreadActivity extends DappActivity {
         scroll();
     }
 
-    private void sendMessage (Message message) {
+    private void sendMessage (final Message message) {
         if (nocontent.getVisibility() == View.VISIBLE)
             nocontent.setVisibility(View.GONE);
         message.intoConversation(conversationKey).save(SaveKeys.CREATE);
+
+        FirebaseDatabase.getInstance().getReference("users").child(message.getTo()).child("chat_unread").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                int unread = dataSnapshot.getValue(Integer.class);
+                unread++;
+                dataSnapshot.getRef().setValue(unread);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                App.handleDbErr(databaseError);
+            }
+        });
+
+        FirebaseDatabase.getInstance().getReference("users").child(message.getTo()).child("active_chats").child(conversationKey).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ChatMetaShell shell = dataSnapshot.getValue(ChatMetaShell.class);
+                shell.setLast_message(message.getText());
+                shell.incrementUnread();
+                shell.save(SaveKeys.UPDATE, message.getTo());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                App.handleDbErr(databaseError);
+            }
+        });
+
+        FirebaseDatabase.getInstance().getReference("users").child(App.me().getUid()).child("active_chats").child(conversationKey).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ChatMetaShell shell = dataSnapshot.getValue(ChatMetaShell.class);
+                shell.setLast_message(message.getText());
+                shell.save(SaveKeys.UPDATE, message.getTo());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                App.handleDbErr(databaseError);
+            }
+        });
+
     }
 
     private void scroll() {
@@ -113,7 +159,8 @@ public class ChatThreadActivity extends DappActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        FirebaseDatabase.getInstance().getReference("chats").child(conversationKey).child("messages").removeEventListener(listener);
+
+        FirebaseDatabase.getInstance().getReference("chats").child(conversationKey).removeEventListener(listener);
     }
 
     private class Listener implements ChildEventListener {
@@ -122,8 +169,7 @@ public class ChatThreadActivity extends DappActivity {
             if (nocontent.getVisibility() == View.VISIBLE)
                 nocontent.setVisibility(View.GONE);
 
-            Message msg = dataSnapshot.getValue(Message.class);
-            displayMessage(msg);
+            displayMessage(dataSnapshot.getValue(Message.class));
         }
 
         @Override
@@ -144,7 +190,7 @@ public class ChatThreadActivity extends DappActivity {
 
         @Override
         public void onCancelled(DatabaseError databaseError) {
-            Log.e(TAG, Log.getStackTraceString(databaseError.toException()));
+            App.handleDbErr(databaseError);
         }
     }
 

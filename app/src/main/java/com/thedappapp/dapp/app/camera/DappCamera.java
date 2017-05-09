@@ -1,4 +1,4 @@
-package com.thedappapp.dapp.app;
+package com.thedappapp.dapp.app.camera;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -8,6 +8,8 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.thedappapp.dapp.app.App;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -16,19 +18,34 @@ import java.util.Date;
 /**
  * Created by jackson on 8/4/16.
  */
-public class Camera {
+public class DappCamera {
 
-    private static final String TAG = Camera.class.getSimpleName();;
+    private static final String TAG = DappCamera.class.getSimpleName();;
     private static final int REQUEST_TAKE_PHOTO = 1;
 
     private Activity context;
     private File mImageFile;
 
-    public Camera(Activity context) {
+    public DappCamera(Activity context) {
         this.context = context;
     }
 
     public void dispatch() {
+       /* android.hardware.Camera camera = null;  // object that use
+        Camera.CameraInfo info = new Camera.CameraInfo();
+        int count = Camera.getNumberOfCameras();
+
+        for (int camIdx = 0; camIdx<count; camIdx++) {
+            Camera.getCameraInfo(camIdx, info);
+            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                try {
+                    camera = Camera.open(camIdx);
+                } catch (RuntimeException e) {
+                    App.exception(TAG, e);
+                }
+            }
+        } */
+
         Intent imageCaptureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         // Ensure that there's a camera activity to handle the intent
@@ -44,6 +61,7 @@ public class Camera {
             // Continue only if the File was successfully created
             if (mImageFile != null) {
                 imageCaptureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(mImageFile));
+                imageCaptureIntent.putExtra("android.intent.extras.CAMERA_FACING", 1);
                 context.startActivityForResult(imageCaptureIntent, REQUEST_TAKE_PHOTO);
             }
 
@@ -87,7 +105,7 @@ public class Camera {
         return mImageFile.getAbsolutePath();
     }
 
-    static File getApplicationPhotoDirectory() {
+    public static File getApplicationPhotoDirectory() {
         File externalDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         return new File (externalDirectory, "Dapp");
     }

@@ -8,21 +8,18 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.google.android.gms.vision.text.Text;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.adapters.ChatSelectorAdapter;
 import com.thedappapp.dapp.app.App;
-import com.thedappapp.dapp.objects.chat.ActiveChatShell;
-import com.thedappapp.dapp.objects.chat.Conversation;
+import com.thedappapp.dapp.app.SaveKeys;
+import com.thedappapp.dapp.objects.chat.ChatMetaShell;
+import com.thedappapp.dapp.services.NotificationService;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 public class ChatSelectorActivity extends DappActivity {
 
@@ -46,38 +43,44 @@ public class ChatSelectorActivity extends DappActivity {
 
         vListSelector = (ListView) findViewById(R.id.chat_selector_list);
 
-        mAdapter = new ChatSelectorAdapter(this, new ArrayList<ActiveChatShell>());
+        mAdapter = new ChatSelectorAdapter(this, new ArrayList<ChatMetaShell>());
         vListSelector.setAdapter(mAdapter);
         vListSelector.setFooterDividersEnabled(true);
         vListSelector.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                ChatMetaShell shell = (ChatMetaShell) mAdapter.getItem(i);
+                NotificationService.setUnreadChatInt(NotificationService.getChatInt() - shell.getUnread());
+
+                shell.resetUnreadCount();
+                shell.save(SaveKeys.UPDATE, App.me().getUid());
+
                 Intent intent = new Intent(ChatSelectorActivity.this, ChatThreadActivity.class);
-                intent.putExtra("key", ((ActiveChatShell) mAdapter.getItem(i)).getChat_id());
-                intent.putExtra("name", ((ActiveChatShell) mAdapter.getItem(i)).getGroup_name());
+                intent.putExtra("key", shell.getChat_id());
+                intent.putExtra("name", shell.getGroup_name());
+                intent.putExtra("to", shell.getTo());
                 startActivity(intent);
             }
         });
 
-        FirebaseDatabase.getInstance().getReference("users").child(App.getApp().me().getUid()).child("active_chats").addChildEventListener(listener);
+        FirebaseDatabase.getInstance().getReference("users").child(App.me().getUid()).child("active_chats").addChildEventListener(listener);
 
         if (mAdapter.isEmpty()) {
             nocontent = (TextView) findViewById(R.id.no_content_message);
-            nocontent.setText("Start dapping up other groups to chat!");
+            nocontent.setText("Start requesting other groups to chat!");
             nocontent.setVisibility(View.VISIBLE);
         }
     }
 
     private class Listener implements ChildEventListener {
 
-        private List<ActiveChatShell> shells = new ArrayList<>();
-
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+
             if (nocontent.getVisibility() == View.VISIBLE)
                 nocontent.setVisibility(View.GONE);
 
-            mAdapter.add(dataSnapshot.getValue(ActiveChatShell.class));
+            mAdapter.add(dataSnapshot.getValue(ChatMetaShell.class));
         }
 
         @Override

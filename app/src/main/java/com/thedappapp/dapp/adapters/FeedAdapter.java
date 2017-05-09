@@ -15,7 +15,6 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.firebase.ui.storage.images.FirebaseImageLoader;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -24,21 +23,17 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.thedappapp.dapp.R;
-import com.thedappapp.dapp.activities.DappActivity;
 import com.thedappapp.dapp.activities.MainFeedActivity;
 import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.app.SaveKeys;
 import com.thedappapp.dapp.objects.Notification;
-import com.thedappapp.dapp.objects.Request;
-import com.thedappapp.dapp.objects.chat.ActiveChatShell;
+import com.thedappapp.dapp.objects.chat.ChatMetaShell;
 import com.thedappapp.dapp.objects.group.Group;
 
 import net.cachapa.expandablelayout.ExpandableLayout;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by jackson on 8/20/16.
@@ -58,17 +53,26 @@ public class FeedAdapter extends RecyclerView.Adapter<com.thedappapp.dapp.adapte
     private MainFeedActivity mContext;
     private RecyclerView recycler;
     private List<Group> mDataset;
+    private List<String> idList;
 
     public FeedAdapter(MainFeedActivity context, RecyclerView recycler, List<Group> dataset) {
         mContext = context;
         this.recycler = recycler;
         mDataset = dataset;
+        idList = new ArrayList<>();
+
+        for (Group group : mDataset)
+            idList.add(group.getUid());
     }
 
     @Override
     public int getItemCount() {
         if (mDataset == null) return 0;
         else return mDataset.size();
+    }
+
+    public boolean hasGroup (Group g) {
+        return idList.contains(g.getUid());
     }
 
     @Override
@@ -81,7 +85,8 @@ public class FeedAdapter extends RecyclerView.Adapter<com.thedappapp.dapp.adapte
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         final Group currentGroup = mDataset.get(position);
-        StorageReference ref = FirebaseStorage.getInstance().getReferenceFromUrl(currentGroup.getPhoto());
+        String path = currentGroup.getPhoto();
+        StorageReference ref = FirebaseStorage.getInstance().getReferenceFromUrl(path);
         Glide.with(mContext).using(new FirebaseImageLoader()).load(ref).into(holder.pic);
         holder.name.setText(currentGroup.getName());
         holder.bio.setText(currentGroup.getBio());
@@ -91,11 +96,13 @@ public class FeedAdapter extends RecyclerView.Adapter<com.thedappapp.dapp.adapte
 
     public void add(Group group) {
         mDataset.add(group);
+        idList.add(group.getUid());
         notifyDataSetChanged();
     }
 
     public void remove(Group group) {
         mDataset.remove(group);
+        idList.remove(group.getUid());
         notifyDataSetChanged();
     }
 
@@ -185,8 +192,6 @@ public class FeedAdapter extends RecyclerView.Adapter<com.thedappapp.dapp.adapte
                 innerFrame.removeAllViews();
                 final View dappOptions = LayoutInflater.from(parent.getContext()).inflate(R.layout.content_dapp_options, parent, false);
 
-                ((TextView) dappOptions.findViewById(R.id.dapp_up_text)).setText("Do you want to send ".concat(theGroup.getName()).concat(" a chat request?"));
-
                 final Button dapp = (Button) dappOptions.findViewById(R.id.dappUp);
 
                 if (mContext.isOutgoingPending(theGroup)) {
@@ -253,84 +258,11 @@ public class FeedAdapter extends RecyclerView.Adapter<com.thedappapp.dapp.adapte
 
         @Override
         public void onClick(View view) {
-            if (view.getTag().equals(STATUS_NO_RELATIONSHIP)) sendRequest();
-            else if (view.getTag().equals(STATUS_INCOMING_PENDING)) acceptRequest();
+            if (view.getTag().equals(STATUS_NO_RELATIONSHIP)) App.sendRequest(theGroup, mContext);
+            else if (view.getTag().equals(STATUS_INCOMING_PENDING)) App.acceptRequest(theGroup);
             else throw new IllegalStateException("Either the view has been assigned an illegal tag, or the view's tag is status:friends or status:request-sent");
         }
 
-        private void sendRequest () {
-            Notification notification = new Notification(App.getApp().getCurrentGroupNameOffline()
-                    .concat(" sent you a chat request!"), theGroup.getLeaderId(), Notification.Types.NEW_REQUEST);
-            notification.save(SaveKeys.CREATE);
-
-            FirebaseDatabase.getInstance().getReference("users")
-                    .child(App.getApp().me().getUid())
-                    .child("pending_requests/outgoing")
-                    .child(theGroup.getMeta().getUid())
-                    .setValue(true);
-
-            FirebaseDatabase.getInstance().getReference("users")
-                    .child(App.getApp().me().getUid())
-                    .child("group")
-                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            FirebaseDatabase.getInstance().getReference("users")
-                                    .child(theGroup.getLeaderId())
-                                    .child("pending_requests/incoming")
-                                    .child(dataSnapshot.getValue(String.class))
-                                    .setValue(true);
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            Log.e(TAG, Log.getStackTraceString(databaseError.toException()));
-                        }
-                    });
-        }
-
-        private void acceptRequest () {
-            //Delete pending_requests/incoming entry
-            FirebaseDatabase.getInstance().getReference("users")
-                            .child(App.getApp().me().getUid()).child("pending_requests/incoming")
-                            .child(theGroup.getMeta().getUid()).setValue(null);
-
-            //Delete pending_requests/outgoing entry from other user's node
-            FirebaseDatabase.getInstance().getReference("users")
-                            .child(theGroup.getLeaderId()).child("pending_requests/outgoing")
-                            .child(App.getApp().getCurrentGroupUidOffline())
-                            .setValue(null);
-
-            //Add to "friends list" of both users' nodes
-            FirebaseDatabase.getInstance().getReference("users")
-                            .child(App.getApp().me().getUid())
-                            .child("friends")
-                            .child(theGroup.getMeta().getUid())
-                            .setValue(true);
-
-            FirebaseDatabase.getInstance().getReference("users")
-                            .child(theGroup.getLeaderId())
-                            .child("friends")
-                            .child(App.getApp().getCurrentGroupUidOffline())
-                            .setValue(true);
-
-            //Send notification to other user
-            Notification notification = new Notification(App.getApp().getCurrentGroupNameOffline()
-                    + " accepted your chat request!", theGroup.getLeaderId(), Notification.Types.REQUEST_ACCEPTED);
-            notification.save(SaveKeys.CREATE);
-
-            //Create conversation in database. Saving won't do anything, since there is no value nor child data.
-            //We are using this nonetheless to generate the appropriate primary key for the conversation.
-            DatabaseReference reference = FirebaseDatabase.getInstance().getReference("chats").push();
-
-            //Create ActiveChatShell in both users' active_chats node
-            //First, in current user's node
-            ActiveChatShell shell = new ActiveChatShell(reference.getKey(), theGroup.getName());
-            shell.save(SaveKeys.CREATE, App.getApp().me().getUid());
-            //Second, in other user's node
-            shell = new ActiveChatShell(reference.getKey(), App.getApp().getCurrentGroupNameOffline());
-            shell.save(SaveKeys.CREATE, theGroup.getLeaderId());
-        }
     }
 
 }
