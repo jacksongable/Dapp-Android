@@ -71,7 +71,8 @@ public class ChatThreadAdapter extends BaseAdapter {
         boolean isSender = App.me().getUid().equals(chatMessage.getSender_id());
 
         setAlignment(holder, isSender);
-        holder.txtMessage.setText(chatMessage.getText());
+        String str = chatMessage.getText();
+        holder.txtMessage.setText(str);
 
         return convertView;
     }

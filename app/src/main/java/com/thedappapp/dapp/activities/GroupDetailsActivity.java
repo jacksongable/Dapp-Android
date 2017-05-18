@@ -113,8 +113,12 @@ public class GroupDetailsActivity extends DappActivity implements NoDrawer {
         public void onClick(View view) {
             if (view.getTag().equals(STATUS_NO_RELATIONSHIP))
                 App.sendRequest(theGroup, GroupDetailsActivity.this);
-            else if (view.getTag().equals(STATUS_INCOMING_PENDING))
+            else if (view.getTag().equals(STATUS_INCOMING_PENDING)) {
                 App.acceptRequest(theGroup);
+                dapp.setEnabled(false);
+                dapp.setText("Friends");
+
+            }
             else
                 throw new IllegalStateException("Either the view has been assigned an illegal tag, or the view's tag is status:friends or status:request-sent");
         }

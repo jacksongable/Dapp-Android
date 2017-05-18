@@ -3,20 +3,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Overlay
+    <!-- Overlay -->
     <RelativeLayout
         android:id="@+id/top_overlay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
-        android:layout_alignParentBottom="true" />
-    <!- /End Overlay -->
+        android:background="@color/primary_dark"
+        android:layout_alignParentTop="true" />
+    <!-- /End Overlay -->
 
     <!-- Camera Preview -->
     <FrameLayout
         android:id="@+id/camera_preview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_below="@id/top_overlay"/>
     <!-- /End Camera Preview -->
 
     <!-- Overlay -->
@@ -24,15 +25,34 @@
         android:id="@+id/bottom_overlay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/md_black_1000"
-        android:layout_alignParentBottom="true" >
+        android:background="@color/primary_dark"
+        android:layout_alignParentBottom="true"
+        android:gravity="center">
 
         <!-- Put your Content Here -->
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/snap"
-            android:text="Take pic" />
+            android:text="Take pic"
+            android:layout_centerHorizontal="true"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/retake"
+            android:text="Retake"
+            android:layout_below="@id/snap"
+            android:layout_centerHorizontal="true"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/use_this_picture"
+            android:layout_below="@id/snap"
+            android:layout_toRightOf="@id/retake"
+            android:text="OK"
+            android:layout_centerHorizontal="true"/>
 
 </RelativeLayout>
     <!-- /End Overlay -->

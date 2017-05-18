@@ -7,6 +7,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.firebase.database.FirebaseDatabase;
 import com.thedappapp.dapp.R;
 import com.thedappapp.dapp.activities.GroupDetailsActivity;
 import com.thedappapp.dapp.activities.MapsActivity;

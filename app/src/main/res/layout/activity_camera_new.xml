@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:gravity="center" android:background="@color/primary">
+
+
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:id="@+id/preview_container"
+        android:layout_height="wrap_content">
+
+        <com.flurgle.camerakit.CameraView xmlns:camerakit="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/camera"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            camerakit:ckFacing="front"
+            camerakit:ckFlash="off"
+            camerakit:ckFocus="continuous"
+            camerakit:ckMethod="standard"
+            camerakit:ckZoom="pinch"
+            camerakit:ckPermissions="picture"
+            camerakit:ckCropOutput="true"
+            camerakit:ckJpegQuality="50"
+            android:adjustViewBounds="true"
+            android:visibility="visible" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/image_preview"
+            android:visibility="gone"/>
+
+    </FrameLayout>
+
+    <ImageButton
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:src="@drawable/take_picture"
+        android:id="@+id/snap"
+        android:layout_centerInParent="true"
+        android:layout_below="@id/preview_container"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Retake"
+        android:id="@+id/retake"
+        android:layout_below="@id/snap"
+        android:visibility="gone"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ok"
+        android:layout_below="@id/retake"
+        android:id="@+id/ok"
+        android:visibility="gone"/>
+
+
+
+</RelativeLayout>

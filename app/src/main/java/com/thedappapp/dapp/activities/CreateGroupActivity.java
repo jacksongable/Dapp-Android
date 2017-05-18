@@ -128,6 +128,7 @@ public class CreateGroupActivity extends DappActivity
     protected void buildGroup() {
         String name = page1Bundle.getString("name");
         String bio = page1Bundle.getString("bio");
+        String photo = page1Bundle.getString("photo");
 
         List<String> interests = page2Bundle.getStringArrayList("interests");
 
@@ -138,7 +139,7 @@ public class CreateGroupActivity extends DappActivity
                 .withLeaderId(App.me().getUid())
                 .withLeaderName(App.me().getDisplayName())
                 .withInterests(interests)
-                .withPic(camera.getCapturedImagePath())
+                .withPic(photo)
                 .build();
 
         if (editMode) code = SaveKeys.UPDATE;
@@ -184,15 +185,13 @@ public class CreateGroupActivity extends DappActivity
 
         @Override
         public void onLocationChanged(Location location) {
-            if (App.hasLocationPermissions()) {
-                mManager.removeUpdates(this);
-                group.getLocation().put("latitude", location.getLatitude());
-                group.getLocation().put("longitude", location.getLongitude());
-                group.setLocationEnabled(true);
-                group.save(code);
-                startActivity(new Intent(CreateGroupActivity.this, MyGroupActivity.class));
-                finish();
-            }
+            mManager.removeUpdates(this);
+            group.getLocation().put("latitude", location.getLatitude());
+            group.getLocation().put("longitude", location.getLongitude());
+            group.setLocationEnabled(true);
+            group.save(code);
+            startActivity(new Intent(CreateGroupActivity.this, MyGroupActivity.class));
+            finish();
         }
         @Override
         public void onStatusChanged(String s, int i, Bundle bundle) {}

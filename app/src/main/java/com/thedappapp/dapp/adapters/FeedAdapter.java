@@ -1,5 +1,6 @@
 package com.thedappapp.dapp.adapters;
 
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Gravity;
@@ -258,7 +259,11 @@ public class FeedAdapter extends RecyclerView.Adapter<com.thedappapp.dapp.adapte
 
         @Override
         public void onClick(View view) {
-            if (view.getTag().equals(STATUS_NO_RELATIONSHIP)) App.sendRequest(theGroup, mContext);
+            if (view.getTag().equals(STATUS_NO_RELATIONSHIP)) {
+                view.setEnabled(false);
+                ((Button) view).setText("Request Sent!");
+                App.sendRequest(theGroup, mContext);
+            }
             else if (view.getTag().equals(STATUS_INCOMING_PENDING)) App.acceptRequest(theGroup);
             else throw new IllegalStateException("Either the view has been assigned an illegal tag, or the view's tag is status:friends or status:request-sent");
         }

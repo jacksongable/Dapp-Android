@@ -177,7 +177,7 @@ public class Group extends DappObject implements Parcelable {
             }
 
             try {
-                this.photo = uploadPhoto(new BufferedInputStream(new FileInputStream(Compressor.compress(photo))));;
+                this.photo = uploadPhoto(new BufferedInputStream(new FileInputStream(photo)));;
             } catch (IOException e) {
                 Log.e(TAG, Log.getStackTraceString(e));
             }
@@ -191,12 +191,12 @@ public class Group extends DappObject implements Parcelable {
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.e(TAG, Log.getStackTraceString(e));
+                        App.exception(TAG, e);
                     }
                 });
                 //App.getApp().setCurrentGroupUid(super.meta.getUid());
-                App.getApp().setCurrentGroupUid(super.getUid());
-                App.getApp().setCurrentGroupNameOffline(name);
+//                App.getApp().setCurrentGroupUid(super.getUid());
+  //              App.getApp().setCurrentGroupNameOffline(name);
                 FirebaseDatabase.getInstance().getReference("users").child(App.me().getUid()).child("group").setValue(super.getUid());
             }
         }
