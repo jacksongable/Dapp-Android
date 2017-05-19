@@ -111,12 +111,17 @@ public class GroupDetailsActivity extends DappActivity implements NoDrawer {
 
         @Override
         public void onClick(View view) {
-            if (view.getTag().equals(STATUS_NO_RELATIONSHIP))
+            if (view.getTag().equals(STATUS_NO_RELATIONSHIP)) {
                 App.sendRequest(theGroup, GroupDetailsActivity.this);
+                dapp.setEnabled(false);
+                dapp.setText("Request sent!");
+                view.setTag(STATUS_REQUEST_SENT);
+            }
             else if (view.getTag().equals(STATUS_INCOMING_PENDING)) {
                 App.acceptRequest(theGroup);
                 dapp.setEnabled(false);
                 dapp.setText("Friends");
+                dapp.setTag(STATUS_FRIENDS);
 
             }
             else

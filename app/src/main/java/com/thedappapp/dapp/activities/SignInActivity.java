@@ -84,7 +84,7 @@ public class SignInActivity extends DappActivity implements NoDrawer {
         TextView disclaimer = (TextView) findViewById(R.id.disclaimer);
         disclaimer.setMovementMethod(LinkMovementMethod.getInstance());
         StringBuilder disclaimerText = new StringBuilder();
-        disclaimerText.append("By signing up for Dapp, you agree to Dapp's<br>");
+        disclaimerText.append("By signing up for Dapp, you\nagree to Dapp's<br>");
         disclaimerText.append("<a href=\"http://www.thedappapp.com/user-agreement\">User Agreement</a>");
         disclaimerText.append(" and ");
         disclaimerText.append("<a href=\"http://www.thedappapp.com/privacy-policy\">Privacy Policy</a>.");
