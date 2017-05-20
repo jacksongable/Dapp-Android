@@ -1,7 +1,9 @@
 package com.thedappapp.dapp.activities;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -110,12 +112,24 @@ public class GroupDetailsActivity extends DappActivity implements NoDrawer {
         }
 
         @Override
-        public void onClick(View view) {
+        public void onClick(final View view) {
             if (view.getTag().equals(STATUS_NO_RELATIONSHIP)) {
-                App.sendRequest(theGroup, GroupDetailsActivity.this);
-                dapp.setEnabled(false);
-                dapp.setText("Request sent!");
-                view.setTag(STATUS_REQUEST_SENT);
+                AlertDialog.Builder builder = new AlertDialog.Builder(GroupDetailsActivity.this);
+                builder.setTitle("Send Request?").setMessage("Would you like to send ".concat(theGroup.getName()).concat(" a chat request?"))
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.cancel();
+                            }
+                        }).setPositiveButton("Send Request", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                App.sendRequest(theGroup, GroupDetailsActivity.this);
+                                dapp.setEnabled(false);
+                                dapp.setText("Request sent!");
+                                view.setTag(STATUS_REQUEST_SENT);
+                            }
+                        }).show();
             }
             else if (view.getTag().equals(STATUS_INCOMING_PENDING)) {
                 App.acceptRequest(theGroup);

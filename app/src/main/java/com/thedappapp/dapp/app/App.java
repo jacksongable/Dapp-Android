@@ -283,6 +283,7 @@ public final class App extends MultiDexApplication {
         FirebaseDatabase.getInstance().getReference("users").child(App.me().getUid()).child("group").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+
                 final String MY_GROUP = dataSnapshot.getValue(String.class);
                 if (MY_GROUP == null) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(context);

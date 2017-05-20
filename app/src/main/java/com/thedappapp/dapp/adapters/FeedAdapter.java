@@ -1,5 +1,6 @@
 package com.thedappapp.dapp.adapters;
 
+import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -24,6 +25,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.thedappapp.dapp.R;
+import com.thedappapp.dapp.activities.GroupDetailsActivity;
 import com.thedappapp.dapp.activities.MainFeedActivity;
 import com.thedappapp.dapp.app.App;
 import com.thedappapp.dapp.app.SaveKeys;
@@ -258,11 +260,24 @@ public class FeedAdapter extends RecyclerView.Adapter<com.thedappapp.dapp.adapte
         }
 
         @Override
-        public void onClick(View view) {
+        public void onClick(final View view) {
             if (view.getTag().equals(STATUS_NO_RELATIONSHIP)) {
-                view.setEnabled(false);
-                ((Button) view).setText("Request Sent!");
-                App.sendRequest(theGroup, mContext);
+                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                builder.setTitle("Send Request?").setMessage("Would you like to send ".concat(theGroup.getName()).concat(" a chat request?"))
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.cancel();
+                            }
+                        }).setPositiveButton("Send Request", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        App.sendRequest(theGroup, mContext);
+                        view.setEnabled(false);
+                        ((Button) view).setText("Request sent!");
+                        view.setTag(STATUS_REQUEST_SENT);
+                    }
+                }).show();
             }
             else if (view.getTag().equals(STATUS_INCOMING_PENDING)) App.acceptRequest(theGroup);
             else throw new IllegalStateException("Either the view has been assigned an illegal tag, or the view's tag is status:friends or status:request-sent");
