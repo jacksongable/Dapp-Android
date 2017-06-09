@@ -5,14 +5,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.Point;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
@@ -37,7 +35,7 @@ public class CameraNewActivity extends DappActivity implements NoToolbar, NoDraw
 
     private CameraView cameraView;
     private FrameLayout previewContainer;
-    private ImageButton snap;
+    private Button snap;
     private Button retake, ok;
     private ImageView preview;
 
@@ -46,7 +44,7 @@ public class CameraNewActivity extends DappActivity implements NoToolbar, NoDraw
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_new);
 
-        snap = (ImageButton) findViewById(R.id.snap);
+        snap = (Button) findViewById(R.id.snap);
         cameraView = (CameraView) findViewById(R.id.camera);
         preview = (ImageView) findViewById(R.id.image_preview);
         previewContainer = (FrameLayout) findViewById(R.id.preview_container);

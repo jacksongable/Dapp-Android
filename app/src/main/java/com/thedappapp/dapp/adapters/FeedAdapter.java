@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -227,6 +228,7 @@ public class FeedAdapter extends RecyclerView.Adapter<com.thedappapp.dapp.adapte
 
             float density = mContext.getResources().getDisplayMetrics().density;
             int margin = (int) (10 * density);
+
 
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
                     (ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);

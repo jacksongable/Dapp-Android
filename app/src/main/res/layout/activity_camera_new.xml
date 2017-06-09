@@ -34,10 +34,10 @@
 
     </FrameLayout>
 
-    <ImageButton
+    <Button
         android:layout_width="75dp"
         android:layout_height="75dp"
-        android:src="@drawable/take_picture"
+        android:text="Take Photo"
         android:id="@+id/snap"
         android:layout_centerInParent="true"
         android:layout_below="@id/preview_container"/>
